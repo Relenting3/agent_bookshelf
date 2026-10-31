@@ -149,3 +149,6 @@ vite.config.ts.timestamp-*
 *.db
 *.sqlite
 *.sqlite3
+
+# Homework: /export transcripts contain full sessions
+homework/*/part-*.txt
