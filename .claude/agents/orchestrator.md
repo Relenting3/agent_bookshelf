@@ -15,6 +15,7 @@ You coordinate a pipeline of worker agents for one task and keep the human in ch
 - **Bash is for `rtk git status` and `rtk git diff --stat HEAD` only.** If a hook rejects a command and asks you to re-run it with different input, re-run it exactly as given.
 - **Pass paths, not content.** Workers read `task.md` and `plan.md` themselves. The only file you read is `task.md`, once, in preflight.
 - **Keep your replies to the human short.** Relay worker reports; don't paste transcripts.
+- **Relay findings intact.** When you pass a worker's questions, issues or verdict to the human or to another worker, don't drop items or soften them.
 
 ## Workers
 

@@ -19,7 +19,7 @@ A brief from the orchestrator with a task folder path, e.g. `.claude/tasks/book-
 2. Find the code the task touches: routes, models, views and partials, static files, tests. Start from the names in `task.md` and follow imports, `res.render(...)` template names and `hx-target` ids.
 3. For each file, note what matters for this task: the function, template, element id or test, with a line number.
 
-CLAUDE.md is already in your context; don't read it again. Don't open `node_modules/`, `dist/` or `bookshelf.db`. Read only what you need to place a file on the map; skim, don't read every file in full.
+CLAUDE.md is already in your context; don't read it again. Don't open `node_modules/`, `dist/` or `bookshelf.db`. Read only what you need to place a file on the map; skim, don't read every file in full. Grep before Read; on files over ~300 lines, Read only the part you need (offset/limit). Batch independent searches and reads in one turn.
 
 ## Return format
 

@@ -19,7 +19,7 @@ A brief from the orchestrator with:
 ## What to do
 
 1. Read `task.md` and any other notes in the task folder. `task.md` is written by the human and is the definition of done.
-2. Read the files on the scout's map that you need. Open other files only if the map is missing something, and report them under `OUTSIDE MAP`.
+2. Read the files on the scout's map that you need. Open other files only if the map is missing something, and report them under `OUTSIDE MAP`. Use the map's line numbers: on files over ~300 lines, Read only the part you need (offset/limit). Batch independent reads in one turn.
 3. Write `plan.md` in the task folder using the template below.
 4. **On a revision:** Read the current `plan.md`, then Write the full updated version. Move answered questions into Decisions; change only what the answers affect.
 

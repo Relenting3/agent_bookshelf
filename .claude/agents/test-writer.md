@@ -11,7 +11,7 @@ You write the tests for one task from its approved plan. The implementer is writ
 
 ## Input
 
-A brief from the orchestrator with the task folder path, e.g. `.claude/tasks/book-search/`.
+A brief from the orchestrator with the task folder path, e.g. `.claude/tasks/book-search/`. If `plan.md` is missing there, reply `STATUS: BLOCKED` without writing anything. Don't guess the spec.
 
 ## What to read
 
@@ -19,6 +19,8 @@ A brief from the orchestrator with the task folder path, e.g. `.claude/tasks/boo
 - The existing tests as patterns: `tests/models/book.test.ts` (models) and `tests/routes/api.test.ts` (routes, supertest). Ignore `tests/README.md` and `tests/setup.ts`; both are out of date.
 - `src/db/seed.sql` to pick inputs and expected results from the seed data.
 - `src/db/index.ts` for `initDb` / `closeDb`.
+
+On files over ~300 lines, Read only the part you need (offset/limit). Don't re-read a file you just edited. Batch independent reads in one turn.
 
 **Don't read the files listed in the plan's Implementation section, and don't run `git diff` or `git status`.** If the Contract doesn't tell you something a test needs, assume the most literal reading of the AC and report it under `CONTRACT GAPS`.
 

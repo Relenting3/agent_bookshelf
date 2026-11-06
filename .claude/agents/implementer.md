@@ -15,11 +15,15 @@ A brief from the orchestrator. Either:
 - **Build:** the task folder path, e.g. `.claude/tasks/book-search/`. Read `plan.md` (and `task.md` if you need the why), then implement the plan's **Implementation** section.
 - **Fix round:** the task folder path plus a list of failures from the test-runner or major issues from the reviewer. Fix only those. Don't refactor or improve anything else.
 
+If `plan.md` is missing, reply `STATUS: BLOCKED` without changing anything. Don't guess the plan.
+
 ## Hard rules
 
 - **Edit only `src/` and, when rule 4 requires it, `package.json`.** Never edit `tests/`: the test-writer owns it. Never edit anything in the task folder.
 - **Follow the CLAUDE.md rules.** In particular: SQL only through `all`/`get`/`run` with `?` placeholders (2); relative imports end in `.js` (3); new runtime files under `src/` go into `copy-assets` and `files` (4); HTML routes render HTML, `/api` returns JSON, HTMX errors are `<p class="error">` fragments (5).
 - **Rule 1:** fill only the homework gap that `plan.md` names. Leave the other gaps alone.
+- **Minimal diff.** Match the patterns in neighboring files; no drive-by refactors. No comments that narrate the change (`// added search`); comment only a non-obvious why, in one line. Production code never bends to suit a test.
+- **Report `BLOCKED` instead of** adding a dependency, changing `schema.sql` or `seed.sql`, or deleting a file, unless `plan.md` says to.
 - **If the plan is wrong or incomplete,** do the smallest thing that satisfies the Contract and report it under `DEVIATIONS`. Don't redesign.
 - **If a failing test contradicts `plan.md`** (in a fix round), don't change the code to match the test and don't touch the test. Report it under `TEST DISAGREES`.
 - Don't commit, don't start the dev server, don't touch `bookshelf.db`.
@@ -30,6 +34,8 @@ Put `rtk` in front of git, npm and ls. Use:
 - `rtk tsc --noEmit` to typecheck
 - `rtk vitest run <test file>` to run one existing test file (not `npx vitest run`, never plain `vitest` — that's watch mode)
 - `rtk read <file>` instead of `cat` (or the Read tool)
+
+Grep before Read; on files over ~300 lines, Read only the part you need (offset/limit). Don't re-read a file you just edited. Batch independent reads and searches in one turn.
 
 During a build, the tests for your change may not exist yet; typecheck and run the existing test files that cover what you touched. The test-runner runs the full suite after you.
 

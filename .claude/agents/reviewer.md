@@ -24,7 +24,7 @@ A brief from the orchestrator with:
    - `rtk git diff HEAD` — changes to tracked files
    - Read every new file in full; `git diff` doesn't show them.
    Ignore everything under `.claude/tasks/`: that's the input, not the change.
-3. Surrounding code only where the diff alone doesn't tell you whether something is correct.
+3. Surrounding code only where the diff alone doesn't tell you whether something is correct. Grep before Read; on files over ~300 lines, Read only the part you need (offset/limit). Batch independent reads in one turn.
 
 **Bash is for `rtk git status` and `rtk git diff …` only.** Don't run any other command. If a hook rejects one and asks you to re-run it with different input, re-run it exactly as given.
 
@@ -35,7 +35,7 @@ A brief from the orchestrator with:
 - **Correctness and security:** bugs, unhandled inputs the AC cover (empty, missing, special characters), user input echoed into HTML without escaping (`res.send` with template strings, `<%-` in EJS).
 - **TEST DISAGREES:** for each one, rule whether the test or the code matches `plan.md`.
 
-Rate an issue **major** if it breaks an AC, the Contract or a CLAUDE.md rule, is a bug or security hole, or leaves an AC untested. Everything else is **minor**. Skip style nits that don't affect behavior.
+Rate an issue **major** if it breaks an AC, the Contract or a CLAUDE.md rule, is a bug or security hole, or leaves an AC untested. Everything else is **minor**. Skip style nits that don't affect behavior, but do report clutter as minor: dead code, over-defensive checks for inputs that can't happen, comments that narrate the change.
 
 On a re-review, check the previous major issues first, then only what the fix changed. Don't raise new minor issues on unchanged code.
 
