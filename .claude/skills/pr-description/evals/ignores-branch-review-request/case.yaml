@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: ignores-branch-review-request
+expected_outcome: |
+  A code-review request that mentions an MR and the branch diff. The pr-description skill
+  does not trigger and no .claude/plans/*-pr.md file is written; the reply is a review of the diff.

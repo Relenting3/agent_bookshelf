@@ -151,4 +151,8 @@ vite.config.ts.timestamp-*
 *.sqlite3
 
 # Homework: /export transcripts contain full sessions
-homework/*/part-*.txt
+# (part-*.txt, planning-session.txt, run-1/ and run-2/ exports)
+homework/**/*.txt
+
+# Course material (slides, meeting notes): company data, keep local only
+.claude/tmp/

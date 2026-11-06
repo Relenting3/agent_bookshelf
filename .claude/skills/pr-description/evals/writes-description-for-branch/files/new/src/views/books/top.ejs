@@ -1,0 +1,19 @@
+<%- include('../partials/header') %>
+
+<h1>Top rated books</h1>
+
+<% if (books.length === 0) { %>
+  <p>No reviews yet.</p>
+<% } else { %>
+  <ol class="top-rated">
+    <% books.forEach(book => { %>
+      <li>
+        <a href="/books/<%= book.id %>"><%= book.title %></a>
+        by <%= book.author %>:
+        <%= book.average_rating.toFixed(1) %> / 5 (<%= book.review_count %> reviews)
+      </li>
+    <% }) %>
+  </ol>
+<% } %>
+
+<%- include('../partials/footer') %>

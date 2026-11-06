@@ -1,0 +1,93 @@
+diff --git a/src/models/book.ts b/src/models/book.ts
+index 95ac844..0d3de28 100644
+--- a/src/models/book.ts
++++ b/src/models/book.ts
+@@ -27,6 +27,22 @@ export function searchBooks(query: string): Book[] {
+   ) as unknown as Book[];
+ }
+ 
++export interface TopRatedBook extends Book {
++  average_rating: number;
++  review_count: number;
++}
++
++export function getTopRatedBooks(limit = 10): TopRatedBook[] {
++  return all(`
++    SELECT b.*, AVG(r.rating) AS average_rating, COUNT(r.id) AS review_count
++    FROM books b
++    JOIN reviews r ON r.book_id = b.id
++    GROUP BY b.id
++    ORDER BY average_rating DESC, review_count DESC, b.title ASC
++    LIMIT ?
++  `, [limit]) as unknown as TopRatedBook[];
++}
++
+ export function createBook(data: Omit<Book, 'id' | 'created_at'>): Book {
+   const result = run(
+     'INSERT INTO books (title, author, isbn, cover_url, description, published_year) VALUES (?, ?, ?, ?, ?, ?)',
+diff --git a/src/routes/api.ts b/src/routes/api.ts
+index b542c2a..9f55a96 100644
+--- a/src/routes/api.ts
++++ b/src/routes/api.ts
+@@ -12,6 +12,11 @@ router.get('/books', (req: Request, res: Response) => {
+   res.json(books);
+ });
+ 
++router.get('/books/top', (req: Request, res: Response) => {
++  const limit = parseInt((req.query.limit as string) ?? '10', 10);
++  res.json(Book.getTopRatedBooks(limit));
++});
++
+ router.get('/books/:id', (req: Request, res: Response) => {
+   const bookId = parseInt(req.params.id as string, 10);
+   const book = Book.getBookById(bookId);
+diff --git a/src/routes/books.ts b/src/routes/books.ts
+index ce09f33..560f9e1 100644
+--- a/src/routes/books.ts
++++ b/src/routes/books.ts
+@@ -22,6 +22,11 @@ router.get('/books/search', (req: Request, res: Response) => {
+   `);
+ });
+ 
++router.get('/books/top', (req: Request, res: Response) => {
++  const books = Book.getTopRatedBooks(10);
++  res.render('books/top', { books });
++});
++
+ router.get('/books/:id', (req: Request, res: Response) => {
+   const bookId = parseInt(req.params.id as string, 10);
+   const book = Book.getBookById(bookId);
+diff --git a/src/views/partials/header.ejs b/src/views/partials/header.ejs
+index d1ce69e..f6d4337 100644
+--- a/src/views/partials/header.ejs
++++ b/src/views/partials/header.ejs
+@@ -11,5 +11,6 @@
+   <nav>
+     <a href="/">Bookshelf</a>
+     <a href="/shelves">Shelves</a>
++    <a href="/books/top">Top rated</a>
+   </nav>
+   <main>
+diff --git a/tests/models/book.test.ts b/tests/models/book.test.ts
+index 6a92b87..be98d6c 100644
+--- a/tests/models/book.test.ts
++++ b/tests/models/book.test.ts
+@@ -56,6 +56,18 @@ describe('Book Model', () => {
+     });
+   });
+ 
++  describe('getTopRatedBooks', () => {
++    it('returns only reviewed books, highest average first', () => {
++      const books = Book.getTopRatedBooks(5);
++      expect(books.length).toBeGreaterThan(0);
++      expect(books.length).toBeLessThanOrEqual(5);
++      for (let i = 1; i < books.length; i++) {
++        expect(books[i - 1].average_rating).toBeGreaterThanOrEqual(books[i].average_rating);
++      }
++      expect(books.every(b => b.review_count > 0)).toBe(true);
++    });
++  });
++
+   // TODO: Add tests for updateBook
+   // TODO: Add tests for deleteBook
+   // TODO: Add tests for searchBooks
