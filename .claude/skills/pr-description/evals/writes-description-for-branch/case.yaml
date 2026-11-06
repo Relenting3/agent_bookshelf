@@ -2,8 +2,8 @@ schema_version: "1.1"
 name: writes-description-for-branch
 expected_outcome: |
   On branch feature/top-rated-books (one commit, uncommitted edits, an untracked view and the
-  plan .claude/plans/top-rated-books.md), the skill triggers and saves
-  .claude/plans/top-rated-books-pr.md with a title and the sections Summary, Changes,
+  plan .claude/tasks/top-rated-books/plan.md), the skill triggers and saves
+  .claude/tasks/top-rated-books/pr.md with a title and the sections Summary, Changes,
   How to test, Risks. Changes covers the committed, uncommitted and untracked files.
   Risks mentions the plan's open question about a minimum review count.
 context:

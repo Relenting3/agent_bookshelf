@@ -1,6 +1,6 @@
 ---
 name: pr-description
-description: Writes a pull request / merge request description (Summary, Changes, How to test, Risks) for the current branch of the agent_bookshelf repo, from its diff against main and the matching plan in .claude/plans/, and saves it to .claude/plans/<slug>-pr.md. Use it whenever someone asks to write, draft or update a PR or MR description, PR body or merge request text, or to "write up the branch for review", even if they don't say "description". Do not use it for reviewing code, writing commit messages, explaining what a diff does in chat, or opening the PR/MR itself.
+description: Writes a pull request / merge request description (Summary, Changes, How to test, Risks) for the current branch of the agent_bookshelf repo, from its diff against main and the matching task folder in .claude/tasks/<slug>/ (task.md, plan.md), and saves it to .claude/tasks/<slug>/pr.md. Use it whenever someone asks to write, draft or update a PR or MR description, PR body or merge request text, or to "write up the branch for review", even if they don't say "description". Do not use it for reviewing code, writing commit messages, explaining what a diff does in chat, or opening the PR/MR itself.
 ---
 
 # PR description
@@ -17,12 +17,12 @@ BASE=$(git merge-base main HEAD)
 git diff --stat $BASE
 git diff $BASE
 git ls-files --others --exclude-standard     # new files not yet added; read each one
-ls .claude/plans/
+ls .claude/tasks/
 ```
 
-- Ignore anything under `.claude/plans/` in the diff. Those files are the input, not the change.
-- **Plan file:** if the caller names one, use it. Otherwise pick the `.claude/plans/<slug>.md` (not a `-pr.md`) that matches the branch or the changed files. If none matches, work from the diff alone.
-- **Slug:** the plan file's name without `.md`. With no plan, use the branch name with `/` replaced by `-`.
+- Ignore anything under `.claude/tasks/` in the diff. Those files are the input, not the change.
+- **Task folder:** if the caller names one, use it. Otherwise pick the `.claude/tasks/<slug>/` folder that matches the branch or the changed files. Read its `task.md` (what was asked, acceptance criteria) and `plan.md` (how it was built) when they exist. If no folder matches, work from the diff alone.
+- **Slug:** the task folder's name. With no folder, use the branch name with `/` replaced by `-`.
 - If the diff is empty and there are no new files, stop and say there is nothing to describe.
 
 ## 2. Write it
@@ -33,7 +33,7 @@ Use exactly this template. Keep the headings and their order.
 # <Title: imperative, under 70 characters>
 
 ## Summary
-<1–3 sentences: what this changes and why. Take the "why" from the plan or task when there is one.>
+<1–3 sentences: what this changes and why. Take the "why" from task.md or plan.md when there is one.>
 
 ## Changes
 - `<path>`: <what changed in it, one line>
@@ -63,4 +63,4 @@ Rules for each section:
 
 ## 3. Save and reply
 
-Save the description to `.claude/plans/<slug>-pr.md`, overwriting any older version. Reply with the file path, then the description.
+Save the description to `.claude/tasks/<slug>/pr.md` (create the folder if needed), overwriting any older version. Reply with the file path, then the description.

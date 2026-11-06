@@ -19,9 +19,23 @@ Course context:
 
 **Implement book search, end to end** (homework gap #1, `GET /books/search`; `Book.searchBooks()` already exists). It's the slides' own example decomposition.
 
-- **No Jira-style tickets in this repo.** The input is a short task file, `homework/week-2/task.md`, with what to implement and the acceptance criteria (definition of done). I write it myself; agents don't invent the AC. A one-off prompt also works, but both runs must use **the same task file** so the before/after inputs are identical.
+- **One folder per task:** `.claude/tasks/<slug>/`. For this homework: `.claude/tasks/book-search/`.
+
+  ```
+  .claude/tasks/<slug>/
+    task.md     ← me: what to build + acceptance criteria (definition of done)
+    plan.md     ← planner
+    pr.md       ← pr-writer
+    (any extra context I add: notes, specs, screenshots)
+  ```
+
+  The orchestrator gets one path (the folder) and passes it to every agent.
+- **No Jira-style tickets in this repo.** `task.md` is written by me; agents don't invent the AC. Both runs must use **the same `task.md`** so the before/after inputs are identical.
 - CLAUDE.md rule 1 says to preserve the deliberate gaps *unless the task is explicitly that homework*. Subagents load CLAUDE.md, so **the task file and every brief must state this is the week 2 homework task**.
 - Run on branches (`hw2/run-1`, `hw2/run-2`) cut from the **same base commit**. `main` keeps the gap.
+- **Stop Run 1 leaking into Run 2.** Git keeps new, uncommitted files in the working folder when you switch branches, so Run 1's `plan.md` and `pr.md` would still be there in Run 2 and could be reused (making Run 2 look cheaper). Two rules:
+  1. `task.md` is committed on `main` **before** Run 1, so it's in the base commit of both runs.
+  2. At the end of each run, commit the task folder **together with the code** on the run branch. Switching branches then removes it. Before starting Run 2, check that `.claude/tasks/book-search/` holds only `task.md`.
 
 ## Agents
 
@@ -29,13 +43,13 @@ Course context:
 |---|---|---|---|---|---|
 | 0 | **orchestrator** | Sonnet · medium | `Agent`, Read, Grep, Glob, git diff/status. **No Edit/Write.** | Me, moving between sessions | Mid-level model coordinates; bigger models are used through subagents. Its context holds only summaries, so it stays cheap. |
 | 1 | **scout** | Haiku · low | Read, Grep, Glob · maxTurns 15 | First half of the Opus planning session | Reads the task file and maps relevant files (≤200 words). Explore/grep/gather work is Haiku's job, and Opus never pays to browse. |
-| 2 | **planner** | Opus · high | Read, Grep, Glob, Write (instructed: only `.claude/plans/`) | Opus session that writes the plan `.md` | Highest-leverage reasoning; mistakes multiply downstream. Small input thanks to the scout. |
+| 2 | **planner** | Opus · high | Read, Grep, Glob, Write (instructed: only `plan.md` in the task folder) | Opus session that writes the plan `.md` | Highest-leverage reasoning; mistakes multiply downstream. Small input thanks to the scout. |
 | 3 | **implementer** | Sonnet · medium | Read, Edit, Write, Bash, Grep, Glob | Sonnet session that executes the plan | Mechanical once the plan is good. Also does fix rounds. |
 | 4 | **test-writer** | Sonnet · medium | Read, Edit, Write (instructed: only `tests/`), Bash | — (new) | Writes tests from the plan's acceptance criteria without seeing the implementation, so tests check the spec rather than the code. Runs in parallel with the implementer (`src/` vs `tests/`, so no worktree needed). |
 | 5 | **test-runner** | Haiku · low | Read, Bash, Grep · maxTurns 10 | — | Straight from the slide: `npm run test:run` + `npx tsc --noEmit`, returns only failures (test, error, file). |
 | 6 | **reviewer** | Opus · high | Read, Grep, Glob, git diff (read-only) | My review workflow | Small input (diff + plan), so Opus is affordable, and it's the quality gate. Returns issues rated major→minor plus a READY / NOT READY verdict. Checks the CLAUDE.md rules (SQL placeholders, `.js` imports, HTML/JSON split, copy-assets). |
 | 7 | **qa-tester** *(optional)* | Sonnet · medium | Chrome MCP, scoped to this agent via `mcpServers` | Test-case skill + Chrome testing | Most expensive step (screenshots), so run it only for medium or large changes. Haiku isn't reliable for multi-step browsing. |
-| 8 | **pr-writer** | Haiku · low | Read, Write (instructed: only `.claude/plans/<slug>-pr.md`), Bash (for git) · maxTurns 10 · loads the `pr-description` skill via `skills:` | PR-description skill | Summarizing a diff into a template is simple work. Saves to `.claude/plans/<slug>-pr.md`. The skill doesn't exist in this repo yet and has to be built first (Session 0). |
+| 8 | **pr-writer** | Haiku · low | Read, Write (instructed: only `pr.md` in the task folder), Bash (for git) · maxTurns 10 · loads the `pr-description` skill via `skills:` | PR-description skill | Summarizing a diff into a template is simple work. Saves to `.claude/tasks/<slug>/pr.md`. Built in Session 0. |
 
 **What stays with me:** approving the plan, answering the planner's questions, commit/push, merge and deploy.
 
@@ -44,7 +58,7 @@ Course context:
 A linear pipeline, with one parallel step (implementer ∥ test-writer) and two retry loops.
 
 ```
-task.md ──► scout (Haiku) ─► planner (Opus) ─► .claude/plans/<slug>.md + questions
+task.md ──► scout (Haiku) ─► planner (Opus) ─► plan.md + questions   (all in .claude/tasks/<slug>/)
                                                     │
                                         ⏸ ME: answer questions / approve
                                                     │
@@ -69,17 +83,17 @@ What I get:
 1. Code changes, **uncommitted**, on the run branch (`hw2/run-1` or `hw2/run-2`).
 2. Tests and typecheck passing (test-runner).
 3. Reviewer verdict READY, plus any non-blocking minor issues.
-4. PR description saved to `.claude/plans/<slug>-pr.md` by the pr-writer, ready to paste into the MR (and kept for week 3).
+4. PR description saved to `.claude/tasks/<slug>/pr.md` by the pr-writer, ready to paste into the MR (and kept for week 3).
 5. The final 5-line summary in the chat: fix rounds, verdict, test status, files changed, open items.
 
-What I do: `git diff` → commit → push → open the MR → paste the description.
+What I do: `git diff` → commit the code **and the task folder** → push → open the MR → paste the description.
 
 If the fix-round limits are hit, the run ends **NOT READY**: uncommitted changes plus the reviewer's open issues. I decide whether to fix them myself or re-run.
 
 ## How agents communicate and dispatch
 
 - **Hub and spoke.** Workers never message each other directly. Each gets a brief from the orchestrator, does its job, and returns a summary. The orchestrator turns that summary into the next brief (e.g. the reviewer's major issues become the implementer's fix brief).
-- **Shared files are the indirect channel.** The planner writes the plan `.md`; the implementer, test-writer and reviewer read it. Pass file paths, not pasted content, to keep the orchestrator's context small.
+- **Shared files are the indirect channel.** Everything for a task lives in `.claude/tasks/<slug>/`: I write `task.md`, the planner writes `plan.md`, and the implementer, test-writer and reviewer read them. Pass file paths, not pasted content, to keep the orchestrator's context small.
 - **Subagents can't ask me questions.** The planner returns `QUESTIONS:` and the orchestrator stops and asks me.
 - **Direct peer messaging** is a different feature, *agent teams*: experimental, off by default, and token-heavy.
 
@@ -124,7 +138,7 @@ Keep one model per session; switching models mid-session invalidates the cache.
 
 0. **Build the skill with Anthropic's skill creator** (`anthropic-skills:skill-creator`; start the session with "use the skill-creator skill to build a pr-description skill"). Don't hand-write it.
    - Location: `.claude/skills/pr-description/SKILL.md`.
-   - What it does: writes a PR/MR description (summary, changes, how to test, risks) from the branch diff and the plan in `.claude/plans/`.
+   - What it does: writes a PR/MR description (summary, changes, how to test, risks) from the branch diff and the task folder (`.claude/tasks/<slug>/task.md` and `plan.md`), saved as `pr.md` in that folder. (First built with `.claude/plans/`; switched to task folders afterwards.)
    - Use the skill creator's test/eval step: one prompt that should trigger it and one that shouldn't (same check as week 1).
    - Commit it to `main`. The `pr-writer` agent loads it later via `skills:`, so it must exist before Session 1.
 
@@ -135,7 +149,7 @@ Keep one model per session; switching models mid-session invalidates the cache.
    - the frontmatter fields: `model`, `effort`, `tools`, `disallowedTools`, `maxTurns`, `skills`, `mcpServers`
    - how `claude --agent <name>` works
    - whether `Agent(name)` can limit which agents a given agent may call
-3. **I write the task file** at `homework/week-2/task.md` (not the build session):
+3. **I write the task file** at `.claude/tasks/book-search/task.md` (not the build session), and commit it on `main` before Run 1:
    - what to implement (book search)
    - acceptance criteria / definition of done (e.g. which fields are searched, case sensitivity, empty-query behavior, HTMX partial vs full page)
    - what's out of scope
@@ -161,12 +175,12 @@ Keep one model per session; switching models mid-session invalidates the cache.
    - Each agent with Bash runs its listed `rtk` commands with no "re-run with exactly that input" rejection. If one appears, check that the agent re-runs it as given.
    - Break one test on purpose and run the test-runner. Its report must still give the test name, the error and the file from RTK's compacted output (if not, RTK saves the full output of a failed command to a file). Undo the break afterwards.
 8. **Check that `/usage` counts subagent costs** in a `claude --agent orchestrator` session (see Build notes, item 5).
-9. **Partial dry run.** Start `claude --agent orchestrator` with the task file, let it reach the plan approval stop, then quit. This checks the scout → planner handoff and the question relay without paying for a full run. Fix the agent files, then commit.
+9. **Partial dry run.** Start `claude --agent orchestrator` with the task folder, let it reach the plan approval stop, then quit. This checks the scout → planner handoff and the question relay without paying for a full run. Fix the agent files, then commit.
 
 ### Session 3: Run 1 (before)
 
-10. Create `hw2/run-1` from main, delete `bookshelf.db`, start a fresh `claude --agent orchestrator` and point it at `homework/week-2/task.md`. Run it end to end, approving the plan.
-11. Before closing, save `/usage` and `/tasks` and run `/export` into `homework/week-2/run-1/`. Write down the number of fix rounds.
+10. Create `hw2/run-1` from main, delete `bookshelf.db`, start a fresh `claude --agent orchestrator` and point it at `.claude/tasks/book-search/`. Run it end to end, approving the plan.
+11. Before closing, save `/usage` and `/tasks` and run `/export` into `homework/week-2/run-1/`. Write down the number of fix rounds. Then commit the code **and** the task folder on the run branch (the leak rule in "The task").
 
 ### Session 4: Run 2 (after)
 
@@ -180,17 +194,17 @@ Keep one model per session; switching models mid-session invalidates the cache.
 ## Build notes
 
 Decided:
-- **Plans folder:** `.claude/plans/`. The planner writes `<slug>.md` there and returns the path.
-- **Input:** `homework/week-2/task.md` with the AC, written by me. No Jira-style tickets in this repo.
+- **Task folders:** `.claude/tasks/<slug>/` with `task.md` (me), `plan.md` (planner), `pr.md` (pr-writer). The orchestrator passes the folder path to every agent.
+- **Input:** `.claude/tasks/book-search/task.md` with the AC, written by me. No Jira-style tickets in this repo.
 - **PR skill:** built in this repo at `.claude/skills/pr-description/` with Anthropic's skill creator, in its own session (Session 0).
 
 For the build session to handle:
 1. **Return formats.** Only the reviewer's format is defined above (major→minor plus READY/NOT READY). Define one for each agent, with a word cap. Review these most carefully in the "show me each file" step.
-2. **Path limits aren't enforced by `tools:`.** It allows or denies whole tools, not paths. "Planner writes only to `.claude/plans/`" and "test-writer writes only to `tests/`" are instructions unless backed by a PreToolUse hook (like the week 1 `protect-htmx` one) or permission rules. Instructions are probably enough for the homework; state the limitation in the decision log.
+2. **Path limits aren't enforced by `tools:`.** It allows or denies whole tools, not paths. "Planner writes only `plan.md` in the task folder" and "test-writer writes only to `tests/`" are instructions unless backed by a PreToolUse hook (like the week 1 `protect-htmx` one) or permission rules. Instructions are probably enough for the homework; state the limitation in the decision log.
 3. **Bash limited to `git diff`/`git status`** for the orchestrator and reviewer: check in the docs whether `tools:` accepts patterns like `Bash(git diff:*)`. If not, it's an instruction too.
 4. **Subagents run in the background by default.** The orchestrator must launch the implementer and test-writer **in the same message**, then wait for **both** results before calling the test-runner.
 5. **Check that `/usage` counts subagent costs** when started with `claude --agent orchestrator`. If it doesn't, the before/after numbers are wrong. Verify in Session 2 before Run 1.
-6. **pr-writer needs `Write`** (found in Session 0). The `pr-description` skill saves `.claude/plans/<slug>-pr.md`, and the orchestrator has no Write to do it instead. Use `tools: Read, Write, Bash` ("git" isn't a tool name; git runs through Bash). Add to its instructions: "Write only `.claude/plans/<slug>-pr.md`. Don't edit any other file." (Same limitation as item 2.)
+6. **pr-writer needs `Write`** (found in Session 0). The `pr-description` skill saves `.claude/tasks/<slug>/pr.md`, and the orchestrator has no Write to do it instead. Use `tools: Read, Write, Bash` ("git" isn't a tool name; git runs through Bash). Add to its instructions: "Write only `pr.md` in the task folder. Don't edit any other file." (Same limitation as item 2.)
 7. **RTK stays on; write commands in `rtk` form up front** (found in Session 0). The global `rtk hook claude` rewrites almost every command the agents use (`git …`, `npm run …`, `npx vitest/tsc`, `ls`, `cat`, `grep`) to an `rtk …` form. In auto mode that can cost a retry: when a command goes through auto mode's safety check, the check approves the original, the hook then changes it, and auto mode refuses to run the unchecked version ("a hook changed this call's input after auto mode reviewed it … issue the Bash call once more with exactly that input"). Seen in the Haiku test run on a chain of commands and a `cp`, both outside the repo. Simple read-only commands inside the repo skip the check and ran fine. RTK leaves commands that already start with `rtk` unchanged, so what gets checked is what runs.
    - **Write each agent's commands in `rtk` form in its file:**
 
@@ -208,6 +222,6 @@ For the build session to handle:
 
 ## Later: moving this to my main project
 
-- Give the scout the Atlassian MCP (via `mcpServers`, scoped to that agent only) to read Jira tickets.
+- Give the scout the Atlassian MCP (via `mcpServers`, scoped to that agent only) to read Jira tickets. Name task folders after the Jira key (`.claude/tasks/PROJ-123/`).
 - Give the pr-writer `glab` CLI or GitLab MCP access (the slides recommend a CLI over an MCP when a mature one exists).
 - Turn on the qa-tester for medium or large changes.
