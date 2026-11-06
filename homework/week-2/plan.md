@@ -41,13 +41,13 @@ Course context:
 
 | # | Agent | Model · effort | Tools | Replaces (my manual flow) | Why this model |
 |---|---|---|---|---|---|
-| 0 | **orchestrator** | Sonnet · medium | `Agent`, Read, Grep, Glob, git diff/status. **No Edit/Write.** | Me, moving between sessions | Mid-level model coordinates; bigger models are used through subagents. Its context holds only summaries, so it stays cheap. |
+| 0 | **orchestrator** | Sonnet · medium | `Agent(scout, planner, implementer, test-writer, test-runner, reviewer, pr-writer)`, Read, Grep, Glob, Bash (instructed: `rtk git status` / `rtk git diff --stat HEAD` only). **No Edit/Write.** No `maxTurns` (it stops for my input). | Me, moving between sessions | Mid-level model coordinates; bigger models are used through subagents. Its context holds only summaries, so it stays cheap. |
 | 1 | **scout** | Haiku · low | Read, Grep, Glob · maxTurns 15 | First half of the Opus planning session | Reads the task file and maps relevant files (≤200 words). Explore/grep/gather work is Haiku's job, and Opus never pays to browse. |
-| 2 | **planner** | Opus · high | Read, Grep, Glob, Write (instructed: only `plan.md` in the task folder) | Opus session that writes the plan `.md` | Highest-leverage reasoning; mistakes multiply downstream. Small input thanks to the scout. |
-| 3 | **implementer** | Sonnet · medium | Read, Edit, Write, Bash, Grep, Glob | Sonnet session that executes the plan | Mechanical once the plan is good. Also does fix rounds. |
-| 4 | **test-writer** | Sonnet · medium | Read, Edit, Write (instructed: only `tests/`), Bash | — (new) | Writes tests from the plan's acceptance criteria without seeing the implementation, so tests check the spec rather than the code. Runs in parallel with the implementer (`src/` vs `tests/`, so no worktree needed). |
+| 2 | **planner** | Opus · high | Read, Grep, Glob, Write (instructed: only `plan.md` in the task folder) · maxTurns 25 | Opus session that writes the plan `.md` | Highest-leverage reasoning; mistakes multiply downstream. Small input thanks to the scout. |
+| 3 | **implementer** | Sonnet · medium | Read, Edit, Write, Bash, Grep, Glob · maxTurns 40 | Sonnet session that executes the plan | Mechanical once the plan is good. Also does fix rounds. |
+| 4 | **test-writer** | Sonnet · medium | Read, Edit, Write (instructed: only `tests/`), Bash · maxTurns 30 | — (new) | Writes tests from the plan's acceptance criteria without seeing the implementation, so tests check the spec rather than the code. Runs in parallel with the implementer (`src/` vs `tests/`, so no worktree needed). |
 | 5 | **test-runner** | Haiku · low | Read, Bash, Grep · maxTurns 10 | — | Straight from the slide: `npm run test:run` + `npx tsc --noEmit`, returns only failures (test, error, file). |
-| 6 | **reviewer** | Opus · high | Read, Grep, Glob, git diff (read-only) | My review workflow | Small input (diff + plan), so Opus is affordable, and it's the quality gate. Returns issues rated major→minor plus a READY / NOT READY verdict. Checks the CLAUDE.md rules (SQL placeholders, `.js` imports, HTML/JSON split, copy-assets). |
+| 6 | **reviewer** | Opus · high | Read, Grep, Glob, Bash (instructed: `rtk git status` / `rtk git diff …` only) · maxTurns 20 | My review workflow | Small input (diff + plan), so Opus is affordable, and it's the quality gate. Returns issues rated major→minor plus a READY / NOT READY verdict. Checks the CLAUDE.md rules (SQL placeholders, `.js` imports, HTML/JSON split, copy-assets). |
 | 7 | **qa-tester** *(optional)* | Sonnet · medium | Chrome MCP, scoped to this agent via `mcpServers` | Test-case skill + Chrome testing | Most expensive step (screenshots), so run it only for medium or large changes. Haiku isn't reliable for multi-step browsing. |
 | 8 | **pr-writer** | Haiku · low | Read, Write (instructed: only `pr.md` in the task folder), Bash (for git) · maxTurns 10 · loads the `pr-description` skill via `skills:` | PR-description skill | Summarizing a diff into a template is simple work. Saves to `.claude/tasks/<slug>/pr.md`. Built in Session 0. |
 
@@ -99,8 +99,9 @@ If the fix-round limits are hit, the run ends **NOT READY**: uncommitted changes
 
 **Dispatching:**
 - I start the main session as the orchestrator: `claude --agent orchestrator`. It's not a subagent, so it keeps the main session's 1h cache, and its workers sit at level 1.
-- A subagent can launch other subagents only if it has the `Agent` tool (or has no `tools:` line, which means all tools). Nesting goes up to 3 levels deep.
+- A subagent can launch other subagents only if it has the `Agent` tool (formerly `Task`). With no `tools:` line it **inherits the parent's tools** (not "all tools"), which can include `Agent`. Nesting goes up to 3 levels deep (`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`).
 - **In this design only the orchestrator has `Agent`.** Workers list their tools explicitly without it. This avoids the agent-spawning-agent spiral, keeps every step visible in `/tasks` and `/usage`, and lets the orchestrator enforce the limits on fix rounds.
+- **The orchestrator's `Agent` is an allowlist:** `Agent(scout, planner, …)` lets it start only those 7 workers (no `general-purpose`, no `Explore`). Per the docs this works only for an agent running as the main session (`--agent`); inside a subagent's file the list is ignored. When the qa-tester is built, add it to the list.
 - Possible later change: let the implementer call the test-runner directly (level 2). The trade-off is that the orchestrator only sees the implementer's final summary.
 
 ## Design rules
@@ -121,7 +122,7 @@ If the fix-round limits are hit, the run ends **NOT READY**: uncommitted changes
 |---|---|---|
 | Planner or reviewer (Opus) dominates | Effort per agent ("thinking bills as output") | Planner or reviewer from `high` to `medium` |
 | Reviewer dominates and the diff is small | Model per agent | Reviewer from Opus to Sonnet (the instructor's code-reviewer vs simple-code-reviewer example) |
-| Fix loops inflate cost | Better handoff between agents | Pass the test-runner's failure list verbatim into the implementer's fix brief instead of the orchestrator's summary. (A hook that trims test output to failures is out: RTK already does that in both runs.) |
+| Fix loops inflate cost | Better handoff between agents | Make the plan's Contract more precise: the planner gives one concrete example per AC (input → expected output), so tests and code agree the first time. (Passing the test-runner's failure list verbatim is already in Run 1; a hook that trims test output to failures is out: RTK already does that in both runs.) |
 | Planner reads many files despite the scout | Isolate verbose work | Tighten the scout's file map, or test whether the scout pays for itself at all |
 
 4. **Run 2 (after):** same task file, same base commit, a fresh session, only that one change.
@@ -174,7 +175,9 @@ Keep one model per session; switching models mid-session invalidates the cache.
 7. **Test each worker on its own** with something cheap (e.g. "use the test-runner agent"). Check that `/tasks` shows the right model and effort, and that the reply follows the agent's return format. Also check RTK (Build notes, item 7):
    - Each agent with Bash runs its listed `rtk` commands with no "re-run with exactly that input" rejection. If one appears, check that the agent re-runs it as given.
    - Break one test on purpose and run the test-runner. Its report must still give the test name, the error and the file from RTK's compacted output (if not, RTK saves the full output of a failed command to a file). Undo the break afterwards.
-8. **Check that `/usage` counts subagent costs** in a `claude --agent orchestrator` session (see Build notes, item 5).
+8. **Check that `/usage` counts subagent costs** in a `claude --agent orchestrator` session (see Build notes, item 5). In the same session also check:
+   - **Effort:** the orchestrator runs at `medium`, not my global `high` (Build notes, item 9).
+   - **Allowlist:** ask the orchestrator to start an `Explore` agent. It must refuse. If it doesn't, `Agent(...)` isn't limiting it: fall back to plain `Agent` plus an instruction, and note it in the decision log.
 9. **Partial dry run.** Start `claude --agent orchestrator` with the task folder, let it reach the plan approval stop, then quit. This checks the scout → planner handoff and the question relay without paying for a full run. Fix the agent files, then commit.
 
 ### Session 3: Run 1 (before)
@@ -202,8 +205,11 @@ For the build session to handle:
 1. **Return formats.** Only the reviewer's format is defined above (major→minor plus READY/NOT READY). Define one for each agent, with a word cap. Review these most carefully in the "show me each file" step.
 2. **Path limits aren't enforced by `tools:`.** It allows or denies whole tools, not paths. "Planner writes only `plan.md` in the task folder" and "test-writer writes only to `tests/`" are instructions unless backed by a PreToolUse hook (like the week 1 `protect-htmx` one) or permission rules. Instructions are probably enough for the homework; state the limitation in the decision log.
 3. **Bash limited to `git diff`/`git status`** for the orchestrator and reviewer: check in the docs whether `tools:` accepts patterns like `Bash(git diff:*)`. If not, it's an instruction too.
+   - **Checked (Session 1): it's an instruction.** Patterns in `tools:` aren't documented. In `disallowedTools`, a pattern like `Bash(git push *)` removes Bash entirely. Per-command limits only work in `permissions.deny` in settings, which would apply to my own sessions too. Both agents get plain `Bash` plus the instruction. Enforcing it would need a per-agent `hooks:` PreToolUse hook. Goes in the decision log next to item 2.
 4. **Subagents run in the background by default.** The orchestrator must launch the implementer and test-writer **in the same message**, then wait for **both** results before calling the test-runner.
 5. **Check that `/usage` counts subagent costs** when started with `claude --agent orchestrator`. If it doesn't, the before/after numbers are wrong. Verify in Session 2 before Run 1.
+   - **Checked in the docs (Session 1): not answered.** The docs don't say whether `/usage` (aliases `/cost`, `/stats`) includes subagent tokens, or how it behaves under `--agent`. Its prompt-cache line covers **the main session only**, not subagents. No per-subagent breakdown is documented; `/tasks` shows model and effort but not tokens.
+   - **Fallback built in:** every subagent completion notice carries `<usage>` (tokens, tool uses, duration). The orchestrator prints a cost table from these, one row per agent call, after the final summary. Use it for "which subagent costs the most" if `/usage` can't tell.
 6. **pr-writer needs `Write`** (found in Session 0). The `pr-description` skill saves `.claude/tasks/<slug>/pr.md`, and the orchestrator has no Write to do it instead. Use `tools: Read, Write, Bash` ("git" isn't a tool name; git runs through Bash). Add to its instructions: "Write only `pr.md` in the task folder. Don't edit any other file." (Same limitation as item 2.)
 7. **RTK stays on; write commands in `rtk` form up front** (found in Session 0). The global `rtk hook claude` rewrites almost every command the agents use (`git …`, `npm run …`, `npx vitest/tsc`, `ls`, `cat`, `grep`) to an `rtk …` form. In auto mode that can cost a retry: when a command goes through auto mode's safety check, the check approves the original, the hook then changes it, and auto mode refuses to run the unchecked version ("a hook changed this call's input after auto mode reviewed it … issue the Bash call once more with exactly that input"). Seen in the Haiku test run on a chain of commands and a `cp`, both outside the repo. Simple read-only commands inside the repo skip the check and ran fine. RTK leaves commands that already start with `rtk` unchanged, so what gets checked is what runs.
    - **Write each agent's commands in `rtk` form in its file:**
@@ -212,13 +218,25 @@ For the build session to handle:
      |---|---|
      | test-runner | `rtk npm run test:run`, `rtk tsc --noEmit` |
      | reviewer, orchestrator | `rtk git diff …`, `rtk git status` |
-     | pr-writer | the `pr-description` skill's git commands with `rtk` in front (`git ls-files` stays plain; RTK doesn't rewrite it) |
-     | implementer, test-writer | rule: put `rtk` in front of git, npm and ls; use `rtk vitest <file>` (not `npx vitest run <file>`), `rtk tsc` for typechecks, `rtk read` (not `cat`) |
+     | pr-writer | the `pr-description` skill's git commands with `rtk` in front (`git ls-files` stays plain; RTK doesn't rewrite it), **one command per call**: `rtk git merge-base main HEAD` first, then the hash pasted literally (no `BASE=$(…)`; shell variables don't survive between calls, and `$(…)` makes it a compound command) |
+     | implementer, test-writer | rule: put `rtk` in front of git, npm and ls; use `rtk vitest run <file>` (not `npx vitest run <file>`; `run` spelled out because `rtk vitest --help` doesn't say whether it watches; `rtk vitest run tests/db.test.ts` checked: runs once, exits), `rtk tsc` for typechecks, `rtk read` (not `cat`) |
 
    - **Fallback line in every agent with Bash:** "If a hook rejects a command and asks you to re-run it with different input, re-run it exactly as given." Mainly for the implementer and test-writer, whose commands can't be listed in advance.
    - **pr-writer:** `maxTurns: 10` (the skill needs about 6 tool calls).
    - **Keep `rtk` out of the `pr-description` skill** so it works on machines without RTK; the `rtk` form lives in the agent files.
    - `rtk git diff` keeps every hunk (93 → 81 lines on the test branch, only headers compacted), so the agents lose nothing.
+
+Found in Session 1 (docs check with the claude-code-guide agent, Claude Code 2.1.319; agents built):
+8. **Docs confirmed:** frontmatter fields `model` (aliases `haiku`/`sonnet`/`opus`), `effort` (low…max), `tools`, `disallowedTools`, `maxTurns`, `skills`, `mcpServers` all exist. `skills:` injects the full skill at startup, so the pr-writer needs no `Skill` tool. `claude --agent <name>` makes the agent the main session (its prompt, tools and model) and still loads CLAUDE.md. Workers load CLAUDE.md (so they see rule 1) but not the conversation or auto-memory. Subagents run in the background by default.
+9. **Effort may be overridden.** The env var `CLAUDE_CODE_EFFORT_LEVEL` overrides frontmatter `effort` (not set here). My global `~/.claude/settings.json` has `"effortLevel": "high"`; the docs don't say whether that beats the orchestrator's `effort: medium` under `--agent`. Check in Session 2.
+10. **`tsc` doesn't check `tests/`.** `tsconfig.json` excludes `tests`, and Vitest strips types without checking them, so the test-runner's `rtk tsc --noEmit` never sees a type error in a test file. The test-writer's `rtk vitest run <file>` load check is the only check before the test-runner. Not fixed (outside this task); goes in the decision log.
+11. **Choices made while writing the agents** (each file has its own return format with a word cap):
+    - **planner:** always writes `plan.md`, with each open question listed next to the default it assumed, so approving the defaults costs no second Opus call. A `Contract` section (routes, status, fragment id, visible text) lets the test-writer work without seeing the code. No full code; `plan.md` under 120 lines. `OUTSIDE MAP` in its reply measures the "planner reads many files despite the scout" lever.
+    - **implementer:** never edits `tests/`, even in fix rounds. A failing test that contradicts `plan.md` is reported as `TEST DISAGREES`, not "fixed".
+    - **test-writer:** "without seeing the implementation" = may read `plan.md`, existing tests, `seed.sql`, `db/index.ts`; may not read the files in the plan's Implementation section or run `git diff` (instruction, like item 2). Tests named `AC-n: …`.
+    - **reviewer:** diffs with `rtk git diff HEAD` (not against `main`, which gets the lever commit before Run 2) and reads untracked files from `rtk git status`. Major = breaks an AC, the Contract or a CLAUDE.md rule, a bug or security hole, or an AC left untested. Each issue is tagged `[src]` or `[tests]` so `[tests]` issues go to the test-writer.
+    - **orchestrator:** preflight refuses to run on `main` and stops if `plan.md` or `pr.md` already exist (enforces the Run 1 → Run 2 leak rule). `TEST DISAGREES` failures skip the remaining test fix rounds and go to the reviewer. A NOT READY run skips the pr-writer.
+    - **Fix briefs paste the workers' output verbatim:** the test-runner's `FAILURES` lines and the reviewer's major issues go into the fix brief unchanged. Paraphrasing them was considered (to keep "verbatim failure list" as a Run 2 lever) and rejected: it would make Run 1 deliberately worse, against the "before = flow as designed" rule. The fix-loop lever now targets the plan's Contract instead.
 
 ## Later: moving this to my main project
 
