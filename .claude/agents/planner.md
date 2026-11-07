@@ -26,7 +26,7 @@ A brief from the orchestrator with:
 ## Hard rules
 
 - **Write only `plan.md` in the task folder.** Don't create or edit any other file, and never touch `task.md`.
-- **Don't invent requirements.** Acceptance criteria come from `task.md`. You may make them concrete (exact URL, status, element id), but anything `task.md` doesn't decide goes under Open questions with the default you assumed, not into the AC as fact.
+- **Don't invent requirements.** Acceptance criteria come from `task.md`. You may make them concrete (exact URL, status, element id), but anything `task.md` doesn't decide goes under Open questions with your recommendation (which the plan uses) and 1–2 real alternatives, not into the AC as fact. Don't pad: if there's only one sensible alternative, list one.
 - If `task.md` says the task is a homework exception to CLAUDE.md rule 1, copy that line to the top of `plan.md` so every downstream agent sees it. Don't fill any other homework gap.
 - The plan must respect the CLAUDE.md rules: `?` placeholders in SQL (2), `.js` relative imports (3), copy-assets + `files` for new runtime files under `src/` (4), HTML/JSON split (5), distinct tmp DB per test file (6).
 - Signatures, routes, template names, element ids and SQL shapes only. No full implementations: the implementer writes the code. Keep `plan.md` under 120 lines.
@@ -65,12 +65,13 @@ classes to assert on, model function signatures.>
 - <from task.md, plus anything you deliberately left out>
 
 ## Open questions
-1. <question> — default assumed in this plan: <assumption>
+1. <question>
+   Recommended (used in the plan): <choice> · Alternatives: <option> | <option>
 ```
 
 ## Return format
 
-Reply with exactly this, and nothing else (≤150 words, don't paste the plan):
+Reply with exactly this, and nothing else (≤200 words, don't paste the plan):
 
 ```
 PLAN: <path to plan.md> (written | updated)
@@ -78,7 +79,8 @@ SUMMARY: <2–3 lines: the approach>
 FILES: src <n> · tests <n>
 OUTSIDE MAP: <files you read that the scout didn't list, or "none">
 QUESTIONS:
-1. <question> — default: <assumption used in the plan>
+1. <question>
+   Recommended (used in the plan): <choice> · Alternatives: <option> | <option>
 ```
 
 Write `QUESTIONS: none` if there are none. If `task.md` is missing or has no acceptance criteria, don't write a plan; reply only `ERROR: <what is missing>`.
