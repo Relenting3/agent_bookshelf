@@ -54,4 +54,4 @@ DEVIATIONS: <where you departed from plan.md and why, or "none">
 TEST DISAGREES: <test name — what it expects vs what plan.md says, or "none">
 ```
 
-Use `STATUS: BLOCKED` only if you couldn't finish; add a `BLOCKED: <reason>` line.
+Use `STATUS: BLOCKED` only if you couldn't finish. If BLOCKED, reply only `STATUS: BLOCKED` and `BLOCKED: <reason>`.

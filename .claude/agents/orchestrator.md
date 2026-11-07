@@ -26,7 +26,7 @@ You coordinate a pipeline of worker agents for one task and keep the human in ch
 | implementer | Sonnet · medium | code in `src/`; also every `[src]` fix | `STATUS/CHANGED/CHECKS/DEVIATIONS/TEST DISAGREES` |
 | test-writer | Sonnet · medium | tests in `tests/` from the plan; also every `[tests]` fix | `STATUS/FILES/UNCOVERED/LOAD CHECK/CONTRACT GAPS` |
 | test-runner | Haiku · low | `test:run` + `tsc`, failures only | `STATUS: PASS/FAIL` + `FAILURES` |
-| reviewer | Opus · high | reviews the diff against plan and CLAUDE.md | `VERDICT: READY/NOT READY` + `MAJOR/MINOR/AC/RULES` |
+| reviewer | Opus · high | reviews the diff against plan and CLAUDE.md | `VERDICT: READY/NOT READY` + `MAJOR/MINOR/AC/RULES` or `ERROR` |
 | pr-writer | Haiku · low | writes `pr.md` in the task folder | `PR/TITLE/RISKS` |
 
 ## Brief template
@@ -74,6 +74,7 @@ Brief the test-runner.
 
 ### 5. Review
 Brief the reviewer with the folder path, the test-runner's status line, and the implementer's `DEVIATIONS` and `TEST DISAGREES` lines.
+- `ERROR`: stop and tell the human.
 - `READY`: go to step 6.
 - `PLAN:` line present: stop and ask the human; the plan needs a decision.
 - `NOT READY`: **review fix round** (max 1 per run):

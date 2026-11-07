@@ -56,3 +56,4 @@ RULES: 1 ✓ · 2 ✓ · 3 ✓ · 4 n/a · 5 ✓ · 6 ✓
 - `READY` means no major issues. Write `MAJOR: none` / `MINOR: none` when empty.
 - `[src]` issues go to the implementer, `[tests]` issues to the test-writer, so tag each one. Write each major issue so it can be pasted into a fix brief as is.
 - If `plan.md` itself is wrong or ambiguous, add `PLAN: <what the human needs to decide>`.
+- If `plan.md` is missing or there are no changes to review, reply with one line only: `ERROR: <what is missing>`.

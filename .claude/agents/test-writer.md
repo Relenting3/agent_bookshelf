@@ -54,4 +54,4 @@ LOAD CHECK: OK (<n> pass, <n> fail) | ERROR: <one line>
 CONTRACT GAPS: <what you had to assume, or "none">
 ```
 
-Use `STATUS: BLOCKED` only if you couldn't write the tests; add a `BLOCKED: <reason>` line.
+Use `STATUS: BLOCKED` only if you couldn't write the tests. If BLOCKED, reply only `STATUS: BLOCKED` and `BLOCKED: <reason>`.

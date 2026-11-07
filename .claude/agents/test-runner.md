@@ -28,7 +28,7 @@ If the output is cut short and doesn't show a failing test's name, error or file
 
 ## Return format
 
-Reply with exactly this, and nothing else (≤150 words, no transcript, no raw logs):
+Reply with exactly this, and nothing else (≤150 words, no transcript, no raw logs, paths relative to the repo root):
 
 ```
 STATUS: PASS | FAIL
