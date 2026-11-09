@@ -66,7 +66,6 @@ HTML routes and the JSON API both call the same model functions; there is no ser
    - the stubbed search in `src/routes/books.ts` (`GET /books/search`; `Book.searchBooks()` already exists in the model)
    - missing tests for `models/user.ts`, `models/review.ts`, `models/shelf.ts`
    - missing input validation in `src/routes/api.ts`
-   - minimal styling in `src/public/css/style.css`
 
    Don't fill these in as a side effect of other work.
 2. **All SQL goes through `all` / `get` / `run` from `src/db/index.ts` with `?` placeholders.** Never interpolate request values into SQL strings. The only interpolation allowed is a fixed column list built in code (as in `updateBook`).
@@ -74,6 +73,7 @@ HTML routes and the JSON API both call the same model functions; there is no ser
 4. **Any new non-TS file under `src/` that is read at runtime** (SQL, views, static assets) must be added to both the `copy-assets` script and the `files` array in `package.json`. Otherwise `npm start`/`npx` break even though `npm run dev` works.
 5. **Keep the HTML/JSON split:** `/api/*` handlers respond with `res.json` and JSON error bodies. Non-API handlers respond with `res.render`, or with an HTML `<p class="error">` fragment for HTMX errors. Never return JSON from an HTMX endpoint.
 6. **Never point tests at `./bookshelf.db`** and never reuse another test file's tmp DB path. If you edit `seed.sql`, update the tests that assert on seed counts and titles, and run `npm run test:run` before finishing.
+7. **New UI follows the design already used in the app.** Reuse the existing classes in `src/public/css/style.css` (e.g. `.form-group`, `.btn-primary`, `.btn-remove`, `p.error`, card classes like `.shelf-card`) before adding new ones. Any new CSS uses the existing palette (`#2c3e50`, `#3498db`, `#e74c3c`, `#ddd` borders, 4px/8px radii). Don't restyle existing pages as a side effect of other work.
 
 ## Repo quirks
 
