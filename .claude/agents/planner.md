@@ -2,7 +2,7 @@
 name: planner
 description: Turns a task folder's task.md plus the scout's file map into plan.md in that folder, the single plan the implementer, test-writer and reviewer work from. Returns open questions for the human instead of guessing. Use after the scout, and again to revise the plan once questions are answered.
 model: opus
-effort: high
+effort: medium
 tools: Read, Grep, Glob, Write
 maxTurns: 25
 ---
