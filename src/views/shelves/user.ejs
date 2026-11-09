@@ -2,13 +2,21 @@
 
 <h1><%= user.display_name %>'s Shelves</h1>
 
-<div class="shelves-list">
-  <% shelves.forEach(shelf => { %>
-    <div class="shelf-card">
-      <h2><a href="/shelves/<%= shelf.id %>"><%= shelf.name %></a></h2>
-      <p class="book-count"><%= shelf.books.length %> books</p>
-    </div>
-  <% }) %>
+<div id="shelves-page" hx-on::before-swap="var s = document.getElementById('shelf-error'); if (event.detail.xhr.status >= 400) { s.innerHTML = event.detail.serverResponse; event.detail.shouldSwap = false; } else { s.innerHTML = ''; }">
+  <div id="shelf-error"></div>
+
+  <div class="add-to-shelf">
+    <h2>New shelf</h2>
+    <form id="new-shelf-form" hx-post="/shelves/user/<%= user.id %>" hx-target="#shelves-list" hx-swap="outerHTML" hx-on::after-request="if(event.detail.successful) this.reset()">
+      <div class="form-group">
+        <label for="shelf-name">Shelf name</label>
+        <input type="text" id="shelf-name" name="name">
+      </div>
+      <button type="submit" class="btn-primary">Create Shelf</button>
+    </form>
+  </div>
+
+  <%- include('shelves-list', { shelves }) %>
 </div>
 
 <%- include('../partials/footer') %>

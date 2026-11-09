@@ -1,0 +1,20 @@
+<div id="shelves-list">
+  <% if (shelves.length === 0) { %>
+    <p class="empty-shelf">No shelves yet. Create one above!</p>
+  <% } else { %>
+    <div class="shelves-list">
+      <% shelves.forEach(shelf => { %>
+        <div class="shelf-card">
+          <h2><a href="/shelves/<%= shelf.id %>"><%= shelf.name %></a></h2>
+          <p class="book-count"><%= shelf.books.length %> books</p>
+          <form class="rename-shelf" hx-patch="/shelves/<%= shelf.id %>" hx-target="#shelves-list" hx-swap="outerHTML">
+            <label for="rename-<%= shelf.id %>">Rename shelf</label>
+            <input type="text" id="rename-<%= shelf.id %>" name="name" value="<%= shelf.name %>">
+            <button type="submit" class="btn-primary">Rename</button>
+          </form>
+          <button type="button" class="btn-remove" hx-delete="/shelves/<%= shelf.id %>" hx-confirm="Delete this shelf?" hx-target="#shelves-list" hx-swap="outerHTML">Delete</button>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>

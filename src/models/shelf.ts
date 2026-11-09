@@ -56,7 +56,14 @@ export function createShelf(userId: number, name: string): Shelf {
   return getShelfById(result.lastInsertRowid)!;
 }
 
+export function renameShelf(id: number, name: string): Shelf | undefined {
+  const result = run('UPDATE shelves SET name = ? WHERE id = ?', [name, id]);
+  return result.changes > 0 ? getShelfById(id) : undefined;
+}
+
 export function deleteShelf(id: number): boolean {
+  // sql.js export() resets foreign_keys, so the cascade can't be relied on
+  run('DELETE FROM shelf_books WHERE shelf_id = ?', [id]);
   const result = run('DELETE FROM shelves WHERE id = ?', [id]);
   return result.changes > 0;
 }

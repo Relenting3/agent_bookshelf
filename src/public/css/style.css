@@ -298,3 +298,34 @@ p.error {
   background: #fdecea;
   border-radius: 4px;
 }
+
+.rename-shelf {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.rename-shelf label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.rename-shelf input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.4rem;
+}
+
+.rename-shelf button {
+  flex-shrink: 0;
+}
+
+.shelf-card .btn-remove {
+  margin-top: 0.5rem;
+}
