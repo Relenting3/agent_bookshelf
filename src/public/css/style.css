@@ -298,3 +298,26 @@ p.error {
   background: #fdecea;
   border-radius: 4px;
 }
+
+.rename-shelf {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.rename-shelf input[name="name"] {
+  flex: 1;
+  min-width: 0;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.rename-shelf .btn-primary {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.shelf-card .btn-remove {
+  margin-top: 0.75rem;
+}

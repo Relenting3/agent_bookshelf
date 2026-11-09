@@ -1,0 +1,29 @@
+<% const onErr = (slot) => `if(event.detail.xhr.status >= 400) { event.detail.shouldSwap = false; document.getElementById('${slot}').innerHTML = event.detail.serverResponse; }`; %>
+<div id="shelves-list" class="shelves-list">
+  <% if (shelves.length === 0) { %>
+    <p class="empty-shelf">No shelves yet. Create one above!</p>
+  <% } %>
+  <% shelves.forEach(shelf => { %>
+    <div class="shelf-card">
+      <h2><a href="/shelves/<%= shelf.id %>"><%= shelf.name %></a></h2>
+      <p class="book-count"><%= shelf.books.length %> books</p>
+      <form class="rename-shelf"
+        hx-patch="/shelves/<%= shelf.id %>"
+        hx-target="#shelves-list"
+        hx-swap="outerHTML"
+        hx-on::before-swap="<%= onErr('shelf-error-' + shelf.id) %>"
+      >
+        <input type="text" name="name" value="<%= shelf.name %>" required>
+        <button type="submit" class="btn-primary">Rename</button>
+      </form>
+      <button class="btn-remove"
+        hx-delete="/shelves/<%= shelf.id %>"
+        hx-target="#shelves-list"
+        hx-swap="outerHTML"
+        hx-confirm="Delete this shelf?"
+        hx-on::before-swap="<%= onErr('shelf-error-' + shelf.id) %>"
+      >Delete</button>
+      <div id="shelf-error-<%= shelf.id %>" class="shelf-error"></div>
+    </div>
+  <% }) %>
+</div>

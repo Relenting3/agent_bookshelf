@@ -5,6 +5,23 @@ import * as Book from '../models/book.js';
 
 const router = Router();
 
+const errorFragment = (res: Response, status: number, message: string) =>
+  res.status(status).send(`<p class="error">${message}</p>`);
+
+function renderShelvesList(res: Response, userId: number) {
+  const user = User.getUserById(userId);
+  const shelves = Shelf.getShelvesByUserId(userId).map(s => Shelf.getShelfWithBooks(s.id)!);
+  res.render('shelves/shelves-list', { user, shelves });
+}
+
+function validateShelfName(body: any, userId: number, ownId?: number): { name: string } | { error: string } {
+  const name = typeof body?.name === 'string' ? body.name.trim() : '';
+  if (!name) return { error: 'Shelf name is required' };
+  const duplicate = Shelf.getShelvesByUserId(userId).some(s => s.name === name && s.id !== ownId);
+  if (duplicate) return { error: 'A shelf with that name already exists' };
+  return { name };
+}
+
 router.get('/', (req: Request, res: Response) => {
   const users = User.getAllUsers();
   res.render('shelves/index', { users });
@@ -22,6 +39,44 @@ router.get('/user/:userId', (req: Request, res: Response) => {
   const shelvesWithBooks = shelves.map(shelf => Shelf.getShelfWithBooks(shelf.id)!);
 
   res.render('shelves/user', { user, shelves: shelvesWithBooks });
+});
+
+router.post('/user/:userId', (req: Request, res: Response) => {
+  const userId = parseInt(req.params.userId as string, 10);
+  if (!User.getUserById(userId)) return errorFragment(res, 404, 'User not found');
+
+  const checked = validateShelfName(req.body, userId);
+  if ('error' in checked) return errorFragment(res, 400, checked.error);
+
+  try {
+    Shelf.createShelf(userId, checked.name);
+  } catch {
+    return errorFragment(res, 400, 'A shelf with that name already exists');
+  }
+  renderShelvesList(res, userId);
+});
+
+router.patch('/:id', (req: Request, res: Response) => {
+  const shelf = Shelf.getShelfById(parseInt(req.params.id as string, 10));
+  if (!shelf) return errorFragment(res, 404, 'Shelf not found');
+
+  const checked = validateShelfName(req.body, shelf.user_id, shelf.id);
+  if ('error' in checked) return errorFragment(res, 400, checked.error);
+
+  try {
+    Shelf.renameShelf(shelf.id, checked.name);
+  } catch {
+    return errorFragment(res, 400, 'A shelf with that name already exists');
+  }
+  renderShelvesList(res, shelf.user_id);
+});
+
+router.delete('/:id', (req: Request, res: Response) => {
+  const shelf = Shelf.getShelfById(parseInt(req.params.id as string, 10));
+  if (!shelf) return errorFragment(res, 404, 'Shelf not found');
+
+  Shelf.deleteShelf(shelf.id);
+  renderShelvesList(res, shelf.user_id);
 });
 
 router.get('/:id', (req: Request, res: Response) => {

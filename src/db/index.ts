@@ -55,6 +55,8 @@ export function saveDb(): void {
     const data = db.export();
     const buffer = Buffer.from(data);
     writeFileSync(dbPath, buffer);
+    // sql.js export() resets connection pragmas
+    db.run('PRAGMA foreign_keys = ON');
   }
 }
 

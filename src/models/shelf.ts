@@ -93,3 +93,8 @@ export function getShelvesForBook(userId: number, bookId: number): Shelf[] {
     ORDER BY s.name
   `, [userId, bookId]) as unknown as Shelf[];
 }
+
+export function renameShelf(id: number, name: string): Shelf | undefined {
+  run('UPDATE shelves SET name = ? WHERE id = ?', [name, id]);
+  return getShelfById(id);
+}
