@@ -17,9 +17,9 @@ Course context:
 
 ## The task
 
-**Implement book search, end to end** (homework gap #1, `GET /books/search`; `Book.searchBooks()` already exists). It's the slides' own example decomposition.
+**Create, rename and delete shelves in the UI** (on `/shelves/user/:userId`; `models/shelf.ts` has `createShelf()` and `deleteShelf()` but no rename, and `routes/shelves.ts` has no routes for any of the three). It touches every layer: model, HTMX routes, a new fragment, CSS and route tests. (The first pick was book search, homework gap #1; it was switched to create-shelves before Run 1.)
 
-- **One folder per task:** `.claude/tasks/<slug>/`. For this homework: `.claude/tasks/book-search/`.
+- **One folder per task:** `.claude/tasks/<slug>/`. For this homework: `.claude/tasks/create-shelves/`.
 
   ```
   .claude/tasks/<slug>/
@@ -31,11 +31,11 @@ Course context:
 
   The orchestrator gets one path (the folder) and passes it to every agent.
 - **No Jira-style tickets in this repo.** `task.md` is written by me; agents don't invent the AC. Both runs must use **the same `task.md`** so the before/after inputs are identical.
-- CLAUDE.md rule 1 says to preserve the deliberate gaps *unless the task is explicitly that homework*. Subagents load CLAUDE.md, so **the task file and every brief must state this is the week 2 homework task**.
-- Run on branches (`hw2/run-1`, `hw2/run-2`) cut from the **same base commit**. `main` keeps the gap.
+- CLAUDE.md rule 1 (preserve the deliberate gaps) doesn't get in the way: shelf management isn't one of the gaps. The planner still copies a rule-1 exception line to the top of `plan.md` whenever a `task.md` has one, for future tasks that do fill a gap.
+- Run on branches (`hw2/run-1`, `hw2/run-2`) cut from the **same base commit**. `main` stays without the feature.
 - **Stop Run 1 leaking into Run 2.** Git keeps new, uncommitted files in the working folder when you switch branches, so Run 1's `plan.md` and `pr.md` would still be there in Run 2 and could be reused (making Run 2 look cheaper). Two rules:
   1. `task.md` is committed on `main` **before** Run 1, so it's in the base commit of both runs.
-  2. At the end of each run, commit the task folder **together with the code** on the run branch. Switching branches then removes it. Before starting Run 2, check that `.claude/tasks/book-search/` holds only `task.md`.
+  2. At the end of each run, commit the task folder **together with the code** on the run branch. Switching branches then removes it. Before starting Run 2, check that `.claude/tasks/create-shelves/` holds only `task.md`.
 
 ## Agents
 
@@ -150,11 +150,10 @@ Keep one model per session; switching models mid-session invalidates the cache.
    - the frontmatter fields: `model`, `effort`, `tools`, `disallowedTools`, `maxTurns`, `skills`, `mcpServers`
    - how `claude --agent <name>` works
    - whether `Agent(name)` can limit which agents a given agent may call
-3. **I write the task file** at `.claude/tasks/book-search/task.md` (not the build session), and commit it on `main` before Run 1:
-   - what to implement (book search)
-   - acceptance criteria / definition of done (e.g. which fields are searched, case sensitivity, empty-query behavior, HTMX partial vs full page)
+3. **I write the task file** at `.claude/tasks/create-shelves/task.md` (not the build session), and commit it on `main` before Run 1:
+   - what to implement (create, rename and delete shelves)
+   - acceptance criteria / definition of done (e.g. name trimming, empty and duplicate names, 404s for unknown ids, HTMX fragment vs full page, what happens to the books on a deleted shelf)
    - what's out of scope
-   - an explicit line: *"This is the week 2 homework task (gap #1, CLAUDE.md rule 1 exception)."*
 4. **Write the worker agents** in `.claude/agents/`, simplest first: `test-runner` → `scout` → `planner` → `implementer` → `test-writer` → `reviewer` → `pr-writer`. Leave `qa-tester` for later. Each file needs:
    - frontmatter: model, effort, an explicit `tools` list (without `Agent`) and `maxTurns`
    - the agent's role, the input it expects, and its hard constraints (including the CLAUDE.md rules that apply to it)
@@ -182,7 +181,7 @@ Keep one model per session; switching models mid-session invalidates the cache.
 
 ### Session 3: Run 1 (before)
 
-10. Create `hw2/run-1` from main, delete `bookshelf.db`, start a fresh `claude --agent orchestrator` and point it at `.claude/tasks/book-search/`. Run it end to end, approving the plan.
+10. Create `hw2/run-1` from main, delete `bookshelf.db`, start a fresh `claude --agent orchestrator` and point it at `.claude/tasks/create-shelves/`. Run it end to end, approving the plan.
 11. Before closing, save `/usage` and `/tasks` and run `/export` into `homework/week-2/run-1/`. Write down the number of fix rounds. Then commit the code **and** the task folder on the run branch (the leak rule in "The task").
 
 ### Session 4: Run 2 (after)
@@ -198,7 +197,7 @@ Keep one model per session; switching models mid-session invalidates the cache.
 
 Decided:
 - **Task folders:** `.claude/tasks/<slug>/` with `task.md` (me), `plan.md` (planner), `pr.md` (pr-writer). The orchestrator passes the folder path to every agent.
-- **Input:** `.claude/tasks/book-search/task.md` with the AC, written by me. No Jira-style tickets in this repo.
+- **Input:** `.claude/tasks/create-shelves/task.md` with the AC, written by me. No Jira-style tickets in this repo.
 - **PR skill:** built in this repo at `.claude/skills/pr-description/` with Anthropic's skill creator, in its own session (Session 0).
 
 For the build session to handle:
