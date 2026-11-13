@@ -167,6 +167,12 @@ The `homework-writeup` skill builds each part from three blocks: **Prompt(s)** (
 | 3 | `part-3-promotion.txt` | the CLAUDE.md commit; A12's score before and after | A12's failing grader explanation (calibration report) · `git show` of the rule · ★ the re-run's summary table |
 | All | | `costs.md` | `/usage` at the end of every session |
 
+**Cues (Claude follows these in every session, so I don't have to remember):**
+- **📸 in the session:** when a screenshot is due, Claude stops and prints `📸 SCREENSHOT: <what must be visible> → <file name>`, then waits. I take it (Cmd+Shift+4) and reply `done`. Claude then moves the newest screenshot from `~/Documents/` (this Mac's screenshot folder, per `defaults read com.apple.screencapture location`) to `homework/week-3/screenshots/<file name>` and continues. It never moves past a 📸 without my `done` (or `skip`).
+- **📸 in my shell:** every eval command Claude hands me ends with a cue that fires when the run finishes: `; afplay /System/Library/Sounds/Glass.aiff; echo "📸 ★ Screenshot the summary table above → <file name>"`. When I hear the sound, I take the screenshot and tell Claude `done`.
+- **📦 at the end of the session:** Claude prints the session's Capture step as a checklist: the `/usage` screenshot, the `costs.md` row, the exact `/export …` line to paste, the commit, and the push question. It ticks each item off as I confirm it, and a session isn't finished until the list is fully ticked.
+- **File names:** `<part>-<n>-<what>.png`, e.g. `1-3-calibration-summary.png`, numbered in the order taken.
+
 **Rules:**
 - **Every session ends with a Capture step:** screenshot `/usage` and add a row to `costs.md`, `/export` to that session's file, commit. **Push only after I approve it.**
 - **Eval runs happen in my shell, not in a Claude session,** so they never reach an export. Append `2>&1 | tee homework/week-3/runs/<arm>/console.txt` to every `claude plugin eval` command, and screenshot the summary table before closing the terminal.
