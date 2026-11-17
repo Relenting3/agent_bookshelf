@@ -15,3 +15,6 @@ What the evals cost to build and run: one row per Claude session (from `/usage`)
 | 2026-11-17 | Session 3: before-high (23 cases, 2 runs, planner high) | `runs/before-high/aggregate-result.json` `costUsd` | $11.95 |
 | 2026-11-17 | Session 3: after-medium, no new run (reuses the Session 2 calibration run, already counted above) | n/a | $0.00 |
 | 2026-11-17 | Session 3: worktrees, before/after comparison, notes (this Claude session) | `/usage` (`2-5-usage-runs.png`); Haiku $0.0002 of it | $2.03 |
+| | **Total, Sessions 0–3** (3 eval runs kept, 2 discarded, 4 Claude sessions; Session 5's write-up session not included) | sum of the rows above | **$49.17** |
+
+Of the total, eval runs cost $30.67 (the kept runs $17.32, the two discarded before-high attempts $13.35) and Claude sessions $18.50.
