@@ -24,20 +24,21 @@ Course context:
 
 Not the whole pipeline: one pipeline run costs $1.09–1.60, so 20+ cases × 2 runs × 2 arms would cost about $100–150, and most of that would measure the implementer, not the lever.
 
-**Harness: `claude plugin eval`** (the course's recommended path; Claude Code v2.1.323 here, the tool needs ≥ v2.1.269). It gives repeat runs, cost per case, an HTML report and JSON for free. No custom-code graders exist, so every check has to be a regex, a tool/file check or an LLM judge. That's enough for a planner, whose output is a single `plan.md` plus a short reply.
+**Harness: `claude plugin eval`** (the course's recommended path; Claude Code v2.1.326 here as of Session 0, the tool needs ≥ v2.1.269). It gives repeat runs, cost per case, an HTML report and JSON for free. No custom-code graders exist, so every check has to be a regex, a tool/file check or an LLM judge. That's enough for a planner, whose output is a single `plan.md` plus a short reply.
 
 ## How a case works
 
 ```
 scaffold (fixture.sh)                         prompt.md (the brief)                        graders
 ──────────────────────                        ─────────────────────                        ───────
-clone the repo at hw3-eval-base   ──►  wrapper session (Haiku) ──Agent──► bookshelf:planner (Opus)   ──►  plan.md contents (regex)
-drop .claude/, homework/                  "Read CLAUDE.md first. Task folder:            writes .claude/tasks/<slug>/plan.md  files created (regex)
-write .claude/tasks/<slug>/task.md         .claude/tasks/<slug>/. Scout map: <frozen>"   replies PLAN/QUESTIONS/ERROR         the reply (regex / short LLM judge)
+git archive hw3-eval-base         ──►  wrapper session (Haiku) ──Agent──► bookshelf:planner (Opus)   ──►  plan.md contents (regex)
+drop .claude/, homework/                  "Read CLAUDE.md first. Task folder:            writes tasks/<slug>/plan.md          files created (regex)
+write tasks/<slug>/task.md                 tasks/<slug>/. Scout map: <frozen>"           replies PLAN/QUESTIONS/ERROR         the reply (regex / short LLM judge)
 ```
 
 - **Plugin:** a manifest at the repo root, `.claude-plugin/plugin.json`, named `bookshelf`, listing **only** `./.claude/agents/planner.md`. The eval then tests the real agent file, not a copy. It's loaded only by `claude plugin eval` (or `--plugin-dir`), so normal sessions don't change.
-- **Workspace:** each run starts empty and loads **no** project `.claude/` and no `CLAUDE.md` (docs: "How runs are isolated"). The scaffold clones the repo at a fixed tag, `hw3-eval-base` (= `a9e1cb4`, week 2's base; `src/` and `tests/` haven't changed since). It deletes `.claude/` and `homework/`, so week 2's plans and notes can't leak into a case (the same idea as week 2's leak rule), then writes only this case's `task.md`.
+- **Workspace:** each run starts empty and loads **no** project `.claude/` and no `CLAUDE.md` (docs: "How runs are isolated"). The scaffold extracts the repo at a fixed tag, `hw3-eval-base` (= `a9e1cb4`, week 2's base; `src/` and `tests/` haven't changed since), with `git archive`, so the workspace has no `.git` history either. It deletes `.claude/` and `homework/`, so week 2's plans and notes can't leak into a case (the same idea as week 2's leak rule), then writes only this case's `task.md`.
+- **Task folders live at `tasks/<slug>/`, not `.claude/tasks/<slug>/`** (found in Session 0, check C2): eval runs refuse writes under `.claude/` (`permission_denied`, reason `mode`), even with `--allow-tools Write`. The planner takes the folder from the brief, so the agent file doesn't change; the write-up lists it as a deviation from the real pipeline.
 - **CLAUDE.md doesn't auto-load in eval runs.** In the real pipeline it does. Every brief therefore starts with "Read `CLAUDE.md` first". The brief is identical in both arms, so the comparison stays fair; the write-up notes the deviation.
 - **Scout maps are frozen.** In the pipeline the planner gets the scout's file map. For each case, run the scout once (Haiku, about $0.005) and paste its map into the brief as a fixed input. That isolates the planner, and both arms see the same map.
 - **Wrapper:** a thin Haiku session (`--model`, pinned) that only dispatches `bookshelf:planner` and relays its reply verbatim. `allowed_tools: [Agent, Read, Glob, Grep]`, plus `--allow-tools Write` (the planner needs Write).
@@ -57,7 +58,7 @@ Tags: `act` = should produce a good plan; `hold` = should push back, ask, or ref
 | A4 | `api-validation` | Gap #3 with the homework line | 400s with **JSON** bodies on `/api/*` (rule 5) |
 | A5 | `delete-review` | HTMX delete of a review on the book page | Fragment root `#reviews-list`, `hx-target`; non-API errors as `<p class="error">` |
 | A6 | `edit-review` | Edit own review inline | Uses existing `updateReview`; no new model function |
-| A7 | `average-rating` | Show average rating on the book page | Uses existing `getAverageRating`; "no ratings" state in the AC |
+| A7 | *TBD in Session 1* | ~~Show average rating on the book page~~: already built (`books.ts:34` passes `averageRating`, `show.ejs:21-25` renders it). Replace with a new `act` task, or move it to `hold` as a second "already done" case like H10 | — |
 | A8 | `books-pagination` | `?page=` on `/` | `LIMIT ? OFFSET ?` placeholders (rule 2) |
 | A9 | `api-sort` | `/api/books?sort=title|year` | Fixed column whitelist, never the raw param in SQL (rule 2) |
 | A10 | `sql-migration-file` | A new `.sql` file under `src/db/` read at runtime | `copy-assets` **and** the `files` array (rule 4) |
@@ -83,10 +84,10 @@ Tags: `act` = should produce a good plan; `hold` = should push back, ask, or ref
 23 cases, so there's room to drop one or two that calibration shows are broken and still have 20+.
 
 **Common graders** (on every `act` case; free unless noted):
-- `file_exists`: `.claude/tasks/<slug>/plan.md` (`exists: false` on H3/H4).
+- `file_exists`: `tasks/<slug>/plan.md` (`exists: false` on H3/H4).
 - `regex` on plan.md: the template sections are there (`## Contract`, `## Acceptance criteria`, `## Open questions`).
 - `regex` on plan.md, `not_contains`: more than 120 lines (`^(?:[^\n]*\n){120}`), and function bodies (no full code).
-- `regex` on `files`, `not_contains`: any created path other than the plan (`^(?!\.claude/tasks/[^/]+/plan\.md$).+$`, flags `m`).
+- `regex` on `files`, `match: not_contains`: any created path other than the plan (`^(?!tasks/[^/]+/plan\.md$).+$`, flags `m`). Checked in Session 0 (C6): `files` does list files the subagent created.
 - `tool_used`: `Agent` with `input_match` on `planner`, so the wrapper delegated instead of doing the work (the slide's "one grader on the result, one on the steps").
 - Hold cases add **one** `llm` grader on the short reply, with concrete PASS/FAIL wording (one judge per dimension, "Unknown" allowed). Long output (plan.md) is graded only by regex, as the slide advises.
 
@@ -151,7 +152,8 @@ evals/
 homework/week-3/
   assignment.md · plan.md · calibration.md · costs.md · decision-log.md
   part-1-setup.txt · part-1-suite.txt · part-1-calibration.txt · part-2-runs.txt · part-3-promotion.txt   ← /export, gitignored
-  runs/calibration/  runs/after-medium/  runs/before-high/  runs/part-3/
+  smoke-cases/                    ← Session 0 probe cases (outside evals/ so suite runs skip them)
+  runs/smoke/  runs/smoke-2/  runs/calibration/  runs/after-medium/  runs/before-high/  runs/part-3/
       ← aggregate-result.json + report.html + notes.md + console.txt (gitignored)
   screenshots/                    ← PNGs named <part>-<n>-<what>.png
 ```
@@ -168,7 +170,7 @@ The `homework-writeup` skill builds each part from three blocks: **Prompt(s)** (
 | All | | `costs.md` | `/usage` at the end of every session |
 
 **Cues (Claude follows these in every session, so I don't have to remember):**
-- **📸 in the session:** when a screenshot is due, Claude stops and prints `📸 SCREENSHOT: <what must be visible> → <file name>`, then waits. I take it (Cmd+Shift+4) and reply `done`. Claude then moves the newest screenshot from `~/Documents/` (this Mac's screenshot folder, per `defaults read com.apple.screencapture location`) to `homework/week-3/screenshots/<file name>` and continues. It never moves past a 📸 without my `done` (or `skip`).
+- **📸 in the session:** when a screenshot is due, Claude stops and prints `📸 SCREENSHOT: <what must be visible> → <file name>`, then waits. I take it (Cmd+Shift+4) and reply `done`. Claude then renames the newest `Screenshot*.png` in `homework/week-3/screenshots/` to `<file name>` and continues. (Claude can't read `~/Documents/`: macOS blocks it for this session. So screenshots must land in `homework/week-3/screenshots/`, either via `defaults write com.apple.screencapture location <repo>/homework/week-3/screenshots` or moved there by hand.) It never moves past a 📸 without my `done` (or `skip`).
 - **📸 in my shell:** every eval command Claude hands me ends with a cue that fires when the run finishes: `; afplay /System/Library/Sounds/Glass.aiff; echo "📸 ★ Screenshot the summary table above → <file name>"`. When I hear the sound, I take the screenshot and tell Claude `done`.
 - **📦 at the end of the session:** Claude prints the session's Capture step as a checklist: the `/usage` screenshot, the `costs.md` row, the exact `/export …` line to paste, the commit, and the push question. It ticks each item off as I confirm it, and a session isn't finished until the list is fully ticked.
 - **File names:** `<part>-<n>-<what>.png`, e.g. `1-3-calibration-summary.png`, numbered in the order taken.
@@ -198,6 +200,8 @@ Keep one model per session, as in week 2.
 | C5 | The scaffold can find its own case directory (`$0`) and clone the local repo by absolute path within 120 s | Shared `_lib/`, CLAUDE.md copy for part 3 | Self-contained `fixture.sh` per case with a heredoc; part 3 moves the clone ref |
 | C6 | `files` lists files a **subagent** created | The "only plan.md" grader | Wrapper lists the task folder at the end; grade its reply |
 | C7 | `costUsd` includes the subagent's Opus tokens (compare with the kept transcript) | Cost per run | Compute the planner's cost from transcripts, as in week 2 |
+
+**Result (2026-11-16): all seven pass, Fallback B not needed.** C2 passes only for task folders outside `.claude/` (hence `tasks/<slug>/`). C4 was shown by contrast: planner requests carried `effort: medium` with the agent at medium and `effort: high` with it temporarily at high, while the wrapper stayed at medium. C7: the planner-only cost per run is `modelUsage["claude-opus-5-5"].costUSD` in each kept `trace.jsonl`. Details: `runs/smoke/notes.md`; smoke cases kept in `homework/week-3/smoke-cases/` (outside `evals/`, so suite runs skip them).
 
 **Fallback B (planner as the main session):** `append_system_prompt` = planner.md's body, `--model opus`, effort set by exporting `CLAUDE_CODE_EFFORT_LEVEL` per arm in the shell. That tests the same prompt, but not through the agent file, so say so in the write-up.
 
@@ -260,7 +264,7 @@ Keep one model per session, as in week 2.
 ## Caveats to state in the write-up
 
 - **Sample size:** 23 cases ≈ ±18 points at an 80% pass rate. If the arms overlap, the honest conclusion is "no evidence of a difference", not "quality held". The cost difference is the stronger signal (46 runs per arm).
-- **Not the full pipeline:** the suite tests the planner alone, with frozen scout maps and an explicit "read CLAUDE.md" line. Week 2's full runs stay as the end-to-end data point.
+- **Not the full pipeline:** the suite tests the planner alone, with frozen scout maps, an explicit "read CLAUDE.md" line, and the task folder at `tasks/<slug>/` instead of `.claude/tasks/<slug>/`. Week 2's full runs stay as the end-to-end data point.
 - **Judged vs deterministic:** most graders are regex/file checks. The `llm` graders are only on short `hold` replies, calibrated by hand in Session 2.
 - **Path limits** (planner writes only plan.md) are still instructions, not hooks; the `files` grader now **measures** how often they hold.
 
