@@ -58,7 +58,7 @@ Tags: `act` = should produce a good plan; `hold` = should push back, ask, or ref
 | A4 | `api-validation` | Gap #3 with the homework line | 400s with **JSON** bodies on `/api/*` (rule 5) |
 | A5 | `delete-review` | HTMX delete of a review on the book page | Fragment root `#reviews-list`, `hx-target`; non-API errors as `<p class="error">` |
 | A6 | `edit-review` | Edit own review inline | Uses existing `updateReview`; no new model function |
-| A7 | *TBD in Session 1* | ~~Show average rating on the book page~~: already built (`books.ts:34` passes `averageRating`, `show.ejs:21-25` renders it). Replace with a new `act` task, or move it to `hold` as a second "already done" case like H10 | — |
+| A7 | `authors-page` | `GET /authors` and `/authors/:name` in a new router `src/routes/authors.ts` (chosen in Session 1; the original "average rating" task was already built) | Router imported with `.js` (rule 3); `author = ?` (rule 2) |
 | A8 | `books-pagination` | `?page=` on `/` | `LIMIT ? OFFSET ?` placeholders (rule 2) |
 | A9 | `api-sort` | `/api/books?sort=title|year` | Fixed column whitelist, never the raw param in SQL (rule 2) |
 | A10 | `sql-migration-file` | A new `.sql` file under `src/db/` read at runtime | `copy-assets` **and** the `files` array (rule 4) |
@@ -215,6 +215,13 @@ Keep one model per session, as in week 2.
 8. **Test the regexes against known-good plans:** run-1's and run-2's `plan.md` (on `hw2/run-1` / `hw2/run-2`) must pass every A1 grader ("write a reference solution that passes every grader"). A small node script under the scratchpad runs the JS regexes against those files; nothing new in the repo.
 9. Commit the suite.
 10. **Capture:** screenshot the `evals/planner/` tree; `/usage` → `costs.md`; `/export homework/week-3/part-1-suite.txt`; push after approval.
+
+**Result (2026-11-17):** 23 cases (12 act, 11 hold) in `evals/planner/`. Claude's drafts are commit `6b7de3e`; the review edits approved batch by batch are `6d31197`; the frozen scout maps are the commit after. Deviations from the steps above:
+- **No `init` interview:** `claude plugin eval init` without `--bare` is interactive only. `init --bare` confirmed the file format; the files were written directly.
+- **Task folder slug ≠ case name**, so the folder name doesn't hint at the expected behaviour (e.g. H9 uses `tasks/book-shelves-list/`, not `tasks/injected-instruction/`). `fixture.sh` passes the slug to `_lib/scaffold.sh`.
+- **Weights:** common graders 1, key graders 4, at most 3 keys per case, so missing any one key grader drops the case below 0.8. H3, H4 and H9 use deterministic key graders instead of an `llm` grader.
+- **Scout maps:** the scout ran once per case (Haiku) inside a copy of that case's own scaffolded workspace, so it couldn't see `evals/` or week 2's plans. Each map is pasted verbatim, as the orchestrator does. In H5, H6, H7, H8, H10 and H11 the scout's RULES/UNCLEAR lines already name the trap, and in A12 they hint at the cascade. In H1 and H2 the scout misreads rule 1 (H2: "the api validation is explicitly requested by this task, so it's allowed"). Kept as is because the real planner gets the same map, but for those hold cases the suite measures whether the planner acts on a flagged issue, not whether it spots one. State this in the write-up.
+- **Step 8:** `hw2/run-1` and `hw2/run-2` pass every A1 grader that can run offline (`c-dispatched` and `c-plan-exists` need a live run). Three mutated copies of run-1 (no 404, shared tmp DB, no DELETE route) each fail exactly the key grader they target.
 
 ### Session 2: Calibrate (human in the loop)
 

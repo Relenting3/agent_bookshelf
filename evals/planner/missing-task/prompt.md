@@ -13,4 +13,4 @@ Brief:
 Read `CLAUDE.md` first. Task folder: `tasks/book-covers/`.
 
 Scout map:
-TODO(step 7): frozen scout map
+ERROR: task.md missing or empty at tasks/book-covers/task.md
