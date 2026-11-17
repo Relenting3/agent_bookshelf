@@ -5,7 +5,7 @@ Two passes over every case in `evals/planner/`:
 - **Session 1 (review):** I read each case's `task.md`, graders and pass condition before any run, and tick the three questions. Edits go into a separate commit on top of Claude's drafts.
 - **Session 2 (calibration run, `medium`, 1 run):** I read every plan.md and judge verdict and record my own PASS/FAIL per key grader next to the eval's. Where we disagree, the rubric or regex gets fixed, not the agent.
 
-**Scoring (draft):** the 6 common graders on `act` cases weigh 1 each, and key graders weigh 4. With up to 3 key graders, missing any single one puts the case under 0.8, while a miss on a hygiene grader alone doesn't. `hold` cases have 1–2 common graders (weight 1) plus their key graders (weight 4).
+**Scoring:** the 6 common graders on `act` cases weigh 1 each, and key graders weigh 4. With up to 3 key graders, missing any single one puts the case under 0.8, while a miss on a hygiene grader alone doesn't. `hold` cases have 1–2 common graders (weight 1) plus their key graders (weight 4).
 
 Common `act` graders: `c-dispatched` (wrapper called `bookshelf:planner`) · `c-plan-exists` · `c-template` (Contract → Acceptance criteria → Open questions) · `c-under-120-lines` · `c-no-code` (no line opening a function or arrow-function block) · `c-only-plan-created` (`files` lists nothing but `tasks/<slug>/plan.md`).
 
@@ -22,10 +22,10 @@ Task folder: `tasks/create-shelves/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 1) |
+| Right? | ✓ (batch 1) |
+| Unhackable? | ✓ (batch 1) |
+| Edits | none |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -40,16 +40,16 @@ Task folder: `tasks/book-search/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 1) |
+| Right? | ✓ (batch 1) |
+| Unhackable? | ✓ (batch 1) |
+| Edits | `k-uses-searchBooks` (mention-only) → `k-no-model-step` (no `src/models/` step in Implementation) |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
 | `k-contract` | | | |
 | `k-homework-line` | | | |
-| `k-uses-searchBooks` | | | |
+| `k-no-model-step` | | | |
 
 ## A3 `user-model-tests`
 
@@ -58,10 +58,10 @@ Task folder: `tasks/user-model-tests/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 1) |
+| Right? | ✓ (batch 1) |
+| Unhackable? | ✓ (batch 1) |
+| Edits | none |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -76,10 +76,10 @@ Task folder: `tasks/api-validation/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 1) |
+| Right? | ✓ (batch 1) |
+| Unhackable? | ✓ (batch 1) |
+| Edits | task.md: the rating example was wrong (`"9"` is rejected); now `"rating": "4.5"`, which passes the range check and is stored |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -93,10 +93,10 @@ Task folder: `tasks/delete-review/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 1) |
+| Right? | ✓ (batch 1) |
+| Unhackable? | ✓ (batch 1) |
+| Edits | `k-html-route`: requires a `DELETE` route outside `/api/` (the existing `POST /books/:id/reviews` satisfied it) · `k-fragment-root`: requires `root` on the same line as `reviews-list.ejs` |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -111,16 +111,16 @@ Task folder: `tasks/edit-review/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 2) |
+| Right? | ✓ (batch 2) |
+| Unhackable? | ✓ (batch 2) |
+| Edits | `k-uses-updateReview` (mention-only) → `k-per-review-target` (fuzzy, check in Session 2) · `k-html-route-errors`: requires a `reviews/:id` route outside `/api/` |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
 | `k-html-route-errors` | | | |
 | `k-no-model-step` | | | |
-| `k-uses-updateReview` | | | |
+| `k-per-review-target` | | | |
 
 ## A7 `authors-page`
 
@@ -129,10 +129,10 @@ Task folder: `tasks/authors-page/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 2) |
+| Right? | ✓ (batch 2) |
+| Unhackable? | ✓ (batch 2) |
+| Edits | none |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -147,10 +147,10 @@ Task folder: `tasks/books-pagination/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 2) |
+| Right? | ✓ (batch 2) |
+| Unhackable? | ✓ (batch 2) |
+| Edits | none |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -165,10 +165,10 @@ Task folder: `tasks/api-books-sort/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 2) |
+| Right? | ✓ (batch 2) |
+| Unhackable? | ✓ (batch 2) |
+| Edits | none |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -183,10 +183,10 @@ Task folder: `tasks/book-tags/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 2) |
+| Right? | ✓ (batch 2) |
+| Unhackable? | ✓ (batch 2) |
+| Edits | `k-copy-assets` and `k-files-array`: `tags.sql` must be on the same line, so "no copy-assets change needed" fails |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -201,10 +201,10 @@ Task folder: `tasks/seed-more-books/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 3) |
+| Right? | ✓ (batch 3) |
+| Unhackable? | ✓ (batch 3) |
+| Edits | none |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -219,10 +219,10 @@ Task folder: `tasks/delete-user/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 3) |
+| Right? | ✓ (batch 3) |
+| Unhackable? | ✓ (batch 3) |
+| Edits | `k-html-route`: requires a `DELETE` route outside `/api/` (from batch 1). Proposed tightening of `k-cascade` (only `DELETE FROM shelf_books` or re-enabling the pragma) **declined**: check in Session 2 whether a plan that says "`PRAGMA foreign_keys = ON` is set, so the cascade handles it" passes |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -236,10 +236,10 @@ Task folder: `tasks/book-search/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 3) |
+| Right? | ✓ (batch 3) |
+| Unhackable? | ✓ (batch 3) |
+| Edits | none |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -253,10 +253,10 @@ Task folder: `tasks/books-pagination/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 3) |
+| Right? | ✓ (batch 3) |
+| Unhackable? | ✓ (batch 3) |
+| Edits | none. Session 2: check how `not_contains` scores a missing plan.md, and an Implementation line like "`api.ts`: no change" |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -270,10 +270,10 @@ Task folder: `tasks/books-page/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 3) |
+| Right? | ✓ (batch 3) |
+| Unhackable? | ✓ (batch 3) |
+| Edits | none |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -287,10 +287,10 @@ Task folder: `tasks/book-covers/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 4) |
+| Right? | ✓ (batch 4) |
+| Unhackable? | ✓ (batch 4) |
+| Edits | none |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -304,10 +304,10 @@ Task folder: `tasks/api-user-lookup/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 4) |
+| Right? | ✓ (batch 4) |
+| Unhackable? | ✓ (batch 4) |
+| Edits | none |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -321,10 +321,10 @@ Task folder: `tasks/shelf-add-feedback/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 4) |
+| Right? | ✓ (batch 4) |
+| Unhackable? | ✓ (batch 4) |
+| Edits | none |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -338,10 +338,10 @@ Task folder: `tasks/books-sort/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 4) |
+| Right? | ✓ (batch 4) |
+| Unhackable? | ✓ (batch 4) |
+| Edits | none |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -355,10 +355,10 @@ Task folder: `tasks/htmx-upgrade/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 4) |
+| Right? | ✓ (batch 4) |
+| Unhackable? | ✓ (batch 4) |
+| Edits | none. Single judge, no deterministic twin; drop in Session 2 if it passes trivially |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -371,10 +371,10 @@ Task folder: `tasks/book-shelves-list/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 5) |
+| Right? | ✓ (batch 5) |
+| Unhackable? | ✓ (batch 5) |
+| Edits | none. Session 2: verify `k-no-other-writes` can match at all (run the regex without the plan.md exclusion on a real trace) |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -389,10 +389,10 @@ Task folder: `tasks/book-detail-page/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 5) |
+| Right? | ✓ (batch 5) |
+| Unhackable? | ✓ (batch 5) |
+| Edits | none |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|
@@ -406,10 +406,10 @@ Task folder: `tasks/shelves-route-tests/`
 
 | Session 1 review | |
 |---|---|
-| Real? | ☐ |
-| Right? | ☐ |
-| Unhackable? | ☐ |
-| Edits | |
+| Real? | ✓ (batch 5) |
+| Right? | ✓ (batch 5) |
+| Unhackable? | ✓ (batch 5) |
+| Edits | `k-distinct-db`: the distinct path must be in `## Tests`, so an Open-question alternative doesn't pass |
 
 | Key grader (Session 2) | Eval | Me | Note |
 |---|---|---|---|

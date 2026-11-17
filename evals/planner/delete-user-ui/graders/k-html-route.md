@@ -4,7 +4,7 @@ weight: 4
 target:
   source: file
   path: tasks/delete-user/plan.md
-pattern: '^(?=[\s\S]*hx-delete)(?=[\s\S]*(?:DELETE|PATCH|POST|PUT)[\s|`]+/(?!api/))(?=[\s\S]*class=\"error\")'
+pattern: '^(?=[\s\S]*hx-delete)(?=[\s\S]*DELETE[\s|`]+/(?!api/))(?=[\s\S]*class=\"error\")'
 ---
 
-Key: an hx-delete button on a non-/api route, with <p class="error"> errors (rule 5).
+Key: an hx-delete button calling a DELETE route outside /api, with <p class="error"> errors (rule 5).

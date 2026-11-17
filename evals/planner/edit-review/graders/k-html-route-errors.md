@@ -4,7 +4,7 @@ weight: 4
 target:
   source: file
   path: tasks/edit-review/plan.md
-pattern: '^(?=[\s\S]*(?:DELETE|PATCH|POST|PUT)[\s|`]+/(?!api/))(?=[\s\S]*class=\"error\")'
+pattern: '^(?=[\s\S]*(?:PATCH|PUT|POST)[\s|`]+/(?!api/)[^\s`|]*reviews/:\w+)(?=[\s\S]*class="error")'
 ---
 
-Key: a non-/api route with <p class="error"> error fragments (rule 5).
+Key: an edit route on reviews/:id outside /api (the existing POST /books/:id/reviews doesn't count), with <p class="error"> error fragments (rule 5).
