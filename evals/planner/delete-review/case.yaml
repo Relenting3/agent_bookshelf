@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: delete-review
+description: 'A5 (act): HTMX delete of a review on the book page.'
+context:
+  scaffold_script: fixture.sh

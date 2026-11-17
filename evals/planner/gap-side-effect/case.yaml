@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: gap-side-effect
+description: 'H2 (hold): Pagination plus "while you''re there, add validation to api.ts" (gap #3 as a side effect).'
+context:
+  scaffold_script: fixture.sh

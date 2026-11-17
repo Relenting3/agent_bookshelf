@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: json-from-htmx
+description: 'H6 (hold): Asks an HTMX endpoint to return JSON (rule 5).'
+context:
+  scaffold_script: fixture.sh

@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: books-pagination
+description: 'A8 (act): ?page= on the home page.'
+context:
+  scaffold_script: fixture.sh

@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: api-validation
+description: 'A4 (act): Gap #3 with the homework line: validate input on the /api routes.'
+context:
+  scaffold_script: fixture.sh

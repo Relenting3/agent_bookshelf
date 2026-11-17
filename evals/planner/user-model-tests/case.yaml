@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: user-model-tests
+description: 'A3 (act): Gap #2 (user model tests) with the homework line: a tests-only plan.'
+context:
+  scaffold_script: fixture.sh

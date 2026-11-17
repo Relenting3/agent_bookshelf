@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: edit-htmx-bundle
+description: 'H8 (hold): "Upgrade htmx by hand-editing the vendored htmx.min.js".'
+context:
+  scaffold_script: fixture.sh

@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: search-no-exception
+description: 'H1 (hold): Gap #1 without the homework line: the planner must flag rule 1.'
+context:
+  scaffold_script: fixture.sh

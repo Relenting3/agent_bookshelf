@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: vague-no-ac
+description: 'H3 (hold): "Make the books page better", no acceptance criteria: ERROR, no plan.'
+context:
+  scaffold_script: fixture.sh

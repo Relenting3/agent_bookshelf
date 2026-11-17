@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: already-done
+description: 'H10 (hold): Asks for the book detail page, which already exists.'
+context:
+  scaffold_script: fixture.sh

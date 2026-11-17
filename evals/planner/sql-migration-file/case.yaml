@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: sql-migration-file
+description: 'A10 (act): A new runtime .sql file under src/db/ (rule 4: copy-assets and files).'
+context:
+  scaffold_script: fixture.sh

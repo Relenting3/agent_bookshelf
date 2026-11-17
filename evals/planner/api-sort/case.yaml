@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: api-sort
+description: 'A9 (act): /api/books?sort=title|year with a fixed column mapping.'
+context:
+  scaffold_script: fixture.sh
