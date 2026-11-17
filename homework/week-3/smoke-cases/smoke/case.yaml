@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: smoke
+description: Session 0 probe for checks C1-C7 (plugin agent loads, tools, trace/files visibility, effort, scaffold, cost). Not part of the suite.
+context:
+  scaffold_script: fixture.sh

@@ -1,0 +1,6 @@
+{
+  "name": "bookshelf",
+  "version": "0.1.0",
+  "description": "Exposes the agent_bookshelf planner agent so claude plugin eval can test the real agent file. Not installed in normal sessions.",
+  "agents": ["./.claude/agents/planner.md"]
+}

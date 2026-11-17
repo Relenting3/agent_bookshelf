@@ -156,3 +156,11 @@ homework/**/*.txt
 
 # Course material (slides, meeting notes): company data, keep local only
 .claude/tmp/
+
+# Week 3 evals: run output (copied into homework/week-3/runs/<arm>/ when kept)
+evals/results/
+# Kept eval transcripts are full sessions, like the /export files
+homework/**/*.jsonl
+
+# macOS
+.DS_Store

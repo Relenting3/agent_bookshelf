@@ -1,0 +1,315 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.326",
+  "startedAt": "2026-11-17T02:59:11.511Z",
+  "durationSeconds": 108,
+  "costUsd": 0.41586004,
+  "partial": false,
+  "suite": {
+    "root": "/Users/relenting/Development/Repositories/agent_bookshelf",
+    "ablation": "none",
+    "modelOverride": "claude-haiku-5-5",
+    "caseFilter": "smoke*",
+    "threshold": 1,
+    "concurrency": 1,
+    "plugins": [
+      {
+        "name": "bookshelf",
+        "version": "0.1.0",
+        "path": "/Users/relenting/Development/Repositories/agent_bookshelf"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "smoke",
+      "dir": "evals/smoke",
+      "source": "mixed",
+      "promptMarkdown": "You are only a dispatcher. Call the Agent tool exactly once, with subagent_type `bookshelf:planner`, in the foreground (wait for its result), and pass it the brief below verbatim as the prompt. Do not read, search or write any file yourself. When the planner returns, reply with its reply verbatim and nothing else.\n\nBrief:\n\nRead `CLAUDE.md` first. Task folder: `.claude/tasks/smoke-rating-count/`.\n\nScout map:\n- `src/routes/books.ts`: `GET /books/:id` (lines 25-37) renders `books/show` with `book`, `reviews`, `averageRating`\n- `src/models/review.ts`: `getReviewsByBookId` (line 19), `getAverageRating` (line 94)\n- `src/views/books/show.ejs`: average rating block (lines 21-27), `Reviews (<%= reviews.length %>)` heading (line 30)\n- `tests/routes/api.test.ts`: supertest route test pattern, own tmp DB",
+      "runsPerCase": 1,
+      "timeoutSeconds": 600,
+      "maxTurns": 10,
+      "graders": [
+        {
+          "name": "c1-agent-dispatched",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "input_match": "bookshelf:planner"
+          }
+        },
+        {
+          "name": "c2-plan-exists",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": ".claude/tasks/smoke-rating-count/plan.md",
+            "exists": true
+          }
+        },
+        {
+          "name": "c3-read-visible",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Read",
+            "input_match": "CLAUDE\\.md"
+          }
+        },
+        {
+          "name": "c3-write-visible",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Write",
+            "input_match": "plan\\.md"
+          }
+        },
+        {
+          "name": "c6-files-lists-plan",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "files",
+            "pattern": "\\.claude/tasks/smoke-rating-count/plan\\.md",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "plan-template",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": {
+              "source": "file",
+              "path": ".claude/tasks/smoke-rating-count/plan.md"
+            },
+            "pattern": "## Acceptance criteria",
+            "flags": "",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0.5,
+            "passed": false,
+            "turns": 2,
+            "costUsd": 0.18562277999999996,
+            "judgeCostUsd": 0,
+            "durationSeconds": 49,
+            "startedAt": "2026-11-17T02:59:11.570Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-tZKSGU/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "c1-agent-dispatched",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Agent called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "c2-plan-exists",
+                "passed": false,
+                "weight": 1,
+                "explanation": ".claude/tasks/smoke-rating-count/plan.md missing (expected present)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "c3-read-visible",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Read called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "c3-write-visible",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Write called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "c6-files-lists-plan",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in files",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "plan-template",
+                "passed": false,
+                "weight": 1,
+                "explanation": "grader threw: case \"smoke\" grader focus file \".claude/tasks/smoke-rating-count/plan.md\": path \".claude/tasks/smoke-rating-count/plan.md\" does not exist",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.5,
+        "passRate": 0
+      }
+    },
+    {
+      "name": "smoke-b",
+      "dir": "evals/smoke-b",
+      "source": "mixed",
+      "promptMarkdown": "You are only a dispatcher. Call the Agent tool exactly once, with subagent_type `bookshelf:planner`, in the foreground (wait for its result), and pass it the brief below verbatim as the prompt. Do not read, search or write any file yourself. When the planner returns, reply with its reply verbatim and nothing else.\n\nBrief:\n\nRead `CLAUDE.md` first. Task folder: `tasks/smoke-rating-count/`.\n\nScout map:\n- `src/routes/books.ts`: `GET /books/:id` (lines 25-37) renders `books/show` with `book`, `reviews`, `averageRating`\n- `src/models/review.ts`: `getReviewsByBookId` (line 19), `getAverageRating` (line 94)\n- `src/views/books/show.ejs`: average rating block (lines 21-27), `Reviews (<%= reviews.length %>)` heading (line 30)\n- `tests/routes/api.test.ts`: supertest route test pattern, own tmp DB",
+      "runsPerCase": 1,
+      "timeoutSeconds": 600,
+      "maxTurns": 10,
+      "graders": [
+        {
+          "name": "c1-agent-dispatched",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Agent",
+            "input_match": "bookshelf:planner"
+          }
+        },
+        {
+          "name": "c2-plan-exists",
+          "type": "file_exists",
+          "weight": 1,
+          "config": {
+            "path": "tasks/smoke-rating-count/plan.md",
+            "exists": true
+          }
+        },
+        {
+          "name": "c3-read-visible",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Read",
+            "input_match": "CLAUDE\\.md"
+          }
+        },
+        {
+          "name": "c3-write-visible",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Write",
+            "input_match": "plan\\.md"
+          }
+        },
+        {
+          "name": "c6-files-lists-plan",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "files",
+            "pattern": "tasks/smoke-rating-count/plan\\.md",
+            "flags": "",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "plan-template",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": {
+              "source": "file",
+              "path": "tasks/smoke-rating-count/plan.md"
+            },
+            "pattern": "## Acceptance criteria",
+            "flags": "",
+            "match": "contains"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.23023726,
+            "judgeCostUsd": 0,
+            "durationSeconds": 59,
+            "startedAt": "2026-11-17T03:00:00.852Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-78UvgZ/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "c1-agent-dispatched",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Agent called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "c2-plan-exists",
+                "passed": true,
+                "weight": 1,
+                "explanation": "tasks/smoke-rating-count/plan.md exists as expected",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "c3-read-visible",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Read called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "c3-write-visible",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Write called 1x (expected 1..∞)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "c6-files-lists-plan",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched tasks/smoke-rating-count/plan\\.md",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "plan-template",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ## Acceptance criteria",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 1,
+        "passRate": 1
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 2,
+    "casesPassed": 1,
+    "overallScore": 0.75,
+    "overallPassRate": 0.5
+  }
+}
