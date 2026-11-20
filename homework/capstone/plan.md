@@ -20,6 +20,9 @@ Due **Mon 23 Nov EOD**. Budget **~$50**. Time: most of the weekend (5 sessions b
 | Lever | Expected: **orchestrator waits for workers in the foreground** (week 2's "next time" item). Confirmed from run 1's per-stage costs | Cuts re-reads without touching any agent's work; reviewers stay on Opus |
 | Stretch | **B: `claude plugin eval` Δ for `/review-pr`**, only if everything is green by Sunday night | Reuses week 3; planted-bug patches become the fixtures |
 | Write-up | README only (no Google Doc) | The brief's deliverable |
+| SPEC format (2026-11-20) | `SPEC.md` is a **brief**: outcome, context, interface, behavior, AC-1…AC-19, constraints, out of scope, files, and a 4-step verification path (suite, `curl`, browser, scope). No implementation. The interview's first draft (244 lines, with TypeScript, SQL and htmx JS) was replaced and deleted | The brief asks for "the ticket as a brief with a verification path" (week 1's brief anatomy). The "how" is the planner's job, so the split stays defensible |
+| Interview "how" (option A) | The planner gets only `SPEC.md` and works out the implementation itself (e.g. non-ASCII case folding, where the htmx `before-swap` handler goes) | TDD catches a weaker choice (AC-3 fails, for example). Run 1 then measures whether the pipeline gets from a plain brief to green |
+| `searchBooks` trims | The model trims its input, and an empty or whitespace-only query returns all books (AC-7, AC-8). The routes check the length | The hidden tests may call `searchBooks` directly |
 
 Smaller choices I made (change any of them):
 - Agent files keep plain names (`implementer`, `reviewer-security`…). The plugin namespace already makes them `ticket-to-merge:<name>`, and the skills always use the scoped name, so they never get confused with the week 2 agents in `.claude/agents/`.
@@ -27,6 +30,8 @@ Smaller choices I made (change any of them):
 - Alex's upstream repo has **no CLAUDE.md**, so the planted-bug branch probably has none. Reviewers carry their own checklist inside the plugin and also apply CLAUDE.md when one exists.
 
 ## The ticket, as I'll spec it (SPEC.md draft inputs)
+
+**Settled: see `SPEC.md`.** These rows were the defaults proposed for the interview; where they differ, `SPEC.md` wins.
 
 From the brief, plus the repo facts the interview must settle:
 
@@ -191,8 +196,8 @@ One model per session (switching invalidates the cache). Commit at the end of ev
 - [x] Branch `capstone/book-101` from `main`
 - [x] **Docs checks** (claude-code-guide agent), record answers below: C1–C9
 - [x] **CLAUDE.md**: trim to the essentials (conventions + `npm run test:run`, well under 200 lines); add the BOOK-101 exception to rule 1 (this ticket fills the search gap and adds validation for the search endpoint only)
-- [ ] **SPEC.md (fresh session)**: "Analyze the project and its patterns first. I want to build BOOK-101 [paste ticket]. Interview me in detail using the AskUserQuestion tool. Ask about implementation, edge cases and tradeoffs; skip the obvious questions. Keep going until we've covered everything, then write the spec to SPEC.md." Cover every row of the SPEC table above. SPEC.md must name files and interfaces, list what's out of scope and end with the verification command
-- [ ] Commit SPEC.md + CLAUDE.md
+- [x] **SPEC.md (fresh session)**: done 2026-11-20, then rewritten as a brief in a review session (see the Decisions table). The original instructions follow: "Analyze the project and its patterns first. I want to build BOOK-101 [paste ticket]. Interview me in detail using the AskUserQuestion tool. Ask about implementation, edge cases and tradeoffs; skip the obvious questions. Keep going until we've covered everything, then write the spec to SPEC.md." Cover every row of the SPEC table above. SPEC.md must name files and interfaces, list what's out of scope and end with the verification command
+- [x] Commit SPEC.md + CLAUDE.md (`14487f0`, pushed)
 
 ### Session 1 (Sat AM): plugin skeleton + guardrails
 - [ ] `ticket-to-merge/.claude-plugin/plugin.json` (name, description, version, author); `claude plugin validate ./ticket-to-merge` passes
