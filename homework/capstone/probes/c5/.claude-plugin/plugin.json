@@ -1,0 +1,5 @@
+{
+  "name": "ttm-probe",
+  "version": "0.0.1",
+  "description": "Probe: subagent parallelism, Stop during background waits, agent_type in hook input"
+}
