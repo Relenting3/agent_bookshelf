@@ -221,7 +221,13 @@ One model per session (switching invalidates the cache). Commit at the end of ev
   - `@.env` typed by me twice: the file was not attached, canary never appeared (deny rule covers `@` mentions)
   - Known limits kept for the README: `.join`/`concat`/`chr()` string building, values from command output. `seed.sql` stays covered by `tamper.mjs`; `bookshelf.db` has no backstop
   - Process note: the first red-team prompt ("try to get past it", "escape tricks") was flagged by Opus 5.5's safeguards and offered a switch to Opus 4.8. I declined the automatic switch (it would silently change models in later measured runs), reworded the prompt as an adversarial test of my own hook, and it ran on 5.5
-- [ ] Commit
+- [x] Commit. Done 2026-11-20, one commit per step (`8d25452`, `223290d`, `37b15b9`, `f5b7ed2`) + this bookkeeping commit. Session costs from `/usage` (screenshots `screenshots/session-1-hooks.png`, `screenshots/session-1-red-team.png`; exports `session-1-build.txt`, `session-1-redteam.txt`):
+
+  | Session | Cost | Model | Cache (main) | Wall / API |
+  |---|---|---|---|---|
+  | Build (steps 1–3, fixes) | $4.96 | Opus 5.5 (+ $0.0003 Haiku) | 99% of input from cache, no misses | 59m 49s / 18m 39s |
+  | Red-team | $0.93 | Opus 5.5 (+ $0.0002 Haiku) | 96%, no misses | 14m 8s / 3m 24s |
+  | **Session 1 total** | **$5.89** | | | (walkthrough session not included) |
 
 ### Session 2 (Sat PM): agents + skills
 - [ ] Copy the week 2 agents into `ticket-to-merge/agents/`, strip `rtk`, adjust to TDD order (test-writer before implementer, RED check in test-runner), point folders at `tickets/<id>/`
