@@ -52,12 +52,13 @@ const writeSuite = (dir, code) =>
     join(dir, 'suite.cjs'),
     `require('fs').writeFileSync(require('path').join(__dirname, '.suite-ran'), '');\nprocess.exit(${code});\n`,
   );
-function gateProject(name, { suite, tsc, active = true }) {
+// `marker` = the .ttm/active content ('' = no first word, counts as running).
+function gateProject(name, { suite, tsc, active = true, marker = '' }) {
   const dir = join(TMP, name);
   mkdirSync(dir, { recursive: true });
   if (active) {
     mkdirSync(join(dir, '.ttm'), { recursive: true });
-    writeFileSync(join(dir, '.ttm', 'active'), '');
+    writeFileSync(join(dir, '.ttm', 'active'), marker);
   }
   writeFileSync(
     join(dir, 'package.json'),
@@ -106,6 +107,14 @@ const gateCheck = ({ ran, decisions }) => (dir) => {
     return m ? `${m[1]} ${m[2]}` : `bad line: ${l}`;
   });
   return JSON.stringify(got) === JSON.stringify(decisions) ? null : `gate.log ${JSON.stringify(got)}, expected ${JSON.stringify(decisions)}`;
+};
+// gateCheck plus: is .ttm/active still there, and (if given) does stderr contain `says`
+const RUNNING_MARKER = 'running BOOK-1 0123abc 2026-11-20T12:00:00Z';
+const DONE_MARKER = 'done BOOK-1 0123abc 2026-11-20T12:00:00Z\n';
+const markerCheck = ({ kept, says, ...log }) => (dir, stderr) => {
+  if (existsSync(join(dir, '.ttm', 'active')) !== kept) return kept ? '.ttm/active was removed' : '.ttm/active is still there';
+  if (says && !stderr.includes(says)) return `stderr doesn't say "${says}"`;
+  return gateCheck(log)(dir);
 };
 
 // tamper project: a git repo with a committed src/db/seed.sql
@@ -336,6 +345,19 @@ const cases = [
   { group: 'gate-done', hook: 'gate', expect: 0, why: 'gate.log 1/3: running worker → skip line', dir: () => (existsSync(join(TMP, 'gate-log')) ? join(TMP, 'gate-log') : addWorkers(gateProject('gate-log', { suite: 1 }), [{ meta: RUNNING }])), input: (d) => stop(d, false, transcriptOf(d)), check: gateCheck({ ran: false, decisions: ['skip-workers-running 1 false'] }) },
   { group: 'gate-done', hook: 'gate', expect: 2, why: 'gate.log 2/3: worker finished, red suite, stop_hook_active → block line', dir: () => join(TMP, 'gate-log'), setup: () => writeFileSync(join(TMP, 'gate-log', 'session', 's1', 'subagents', 'agent-w0.meta.json'), JSON.stringify(FINISHED)), input: (d) => stop(d, true, transcriptOf(d)), check: gateCheck({ ran: true, decisions: ['skip-workers-running 1 false', 'block true'] }) },
   { group: 'gate-done', hook: 'gate', expect: 0, why: 'gate.log 3/3: green suite → pass line', dir: () => join(TMP, 'gate-log'), setup: () => writeSuite(join(TMP, 'gate-log'), 0), input: (d) => stop(d, false, transcriptOf(d)), check: gateCheck({ ran: true, decisions: ['skip-workers-running 1 false', 'block true', 'pass false'] }) },
+  // marker states: `running …` / unknown first word behave as before; `done …` always checks
+  { group: 'gate-done', hook: 'gate', expect: 2, why: 'running marker, red suite → block, marker kept', dir: () => gateProject('gate-m-running-red', { suite: 1, marker: RUNNING_MARKER }), input: (d) => stop(d), check: markerCheck({ kept: true, ran: true, decisions: ['block false'] }) },
+  { group: 'gate-done', hook: 'gate', expect: 0, why: 'running marker, green suite → pass, marker kept', dir: () => gateProject('gate-m-running-green', { suite: 0, marker: RUNNING_MARKER }), input: (d) => stop(d), check: markerCheck({ kept: true, ran: true, decisions: ['pass false'] }) },
+  { group: 'gate-done', hook: 'gate', expect: 0, why: 'running marker, red suite, running worker → skipped, marker kept', dir: () => addWorkers(gateProject('gate-m-running-w', { suite: 1, marker: RUNNING_MARKER }), [{ meta: RUNNING }]), input: (d) => stop(d, false, transcriptOf(d)), check: markerCheck({ kept: true, ran: false, decisions: ['skip-workers-running 1 false'] }) },
+  { group: 'gate-done', hook: 'gate', expect: 2, why: 'unknown first word ("finished") counts as running → block', dir: () => gateProject('gate-m-unknown', { suite: 1, marker: 'finished BOOK-1' }), input: (d) => stop(d), check: markerCheck({ kept: true, ran: true, decisions: ['block false'] }) },
+  { group: 'gate-done', hook: 'gate', expect: 0, why: 'done marker, green suite → pass-done, marker removed', dir: () => gateProject('gate-m-done-green', { suite: 0, marker: DONE_MARKER }), input: (d) => stop(d), check: markerCheck({ kept: false, ran: true, decisions: ['pass-done false'] }) },
+  { group: 'gate-done', hook: 'gate', expect: 2, why: 'done marker, red suite → block-done, marker kept', dir: () => gateProject('gate-m-done-red', { suite: 1, marker: DONE_MARKER }), input: (d) => stop(d), check: markerCheck({ kept: true, says: 'the run said done but the suite is red', ran: true, decisions: ['block-done false'] }) },
+  { group: 'gate-done', hook: 'gate', expect: 2, why: 'done marker, red suite, running worker → no skip, still blocks', dir: () => addWorkers(gateProject('gate-m-done-w', { suite: 1, marker: DONE_MARKER }), [{ meta: RUNNING }]), input: (d) => stop(d, false, transcriptOf(d)), check: markerCheck({ kept: true, says: 'the run said done but the suite is red', ran: true, decisions: ['block-done false'] }) },
+  ...(process.platform === 'win32'
+    ? []
+    : [
+        { group: 'gate-done', hook: 'gate', expect: 2, why: 'done marker, green suite, red tsc → block-done, marker kept', dir: () => gateProject('gate-m-done-tsc', { suite: 0, tsc: 1, marker: DONE_MARKER }), input: (d) => stop(d), check: markerCheck({ kept: true, ran: true, decisions: ['block-done false'] }) },
+      ]),
 
   // 5. tamper (temp git repo only; cases run in order) -------------------------
   { group: 'tamper', hook: 'tamper', expect: 0, why: 'seed.sql clean', dir: () => REPO, input: post, check: seedRestored },
@@ -416,7 +438,7 @@ function runHook(c) {
   let problem = null;
   if (got !== c.expect) problem = `expected ${c.expect}, got ${got}`;
   else if (c.expect === 2 && !stderr) problem = 'blocked without a reason on stderr';
-  else if (c.check) problem = c.check(dir);
+  else if (c.check) problem = c.check(dir, stderr);
   return { problem, input, stderr };
 }
 

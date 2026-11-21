@@ -116,7 +116,7 @@ Optional, only if time: copy the `pr-writer` (Haiku) + `pr-description` skill to
   → review: same steps as /review-pr (3 specialists ∥ → verifier → JSON)
   → fix loop: major findings → implementer ([src]) or test-writer ([tests]) → test-runner → review again (max 2 rounds)
         commit per fix round
-  → done: remove .ttm/active only (keep .ttm/backups/) · 5-line summary (fix rounds, verdict, tests, files, open items)
+  → done: READY → marker set to `done`, the Stop gate checks the suite and removes it; NOT READY → `rm -f .ttm/active` (keep .ttm/backups/) · summary in tickets/<ID>/run.md (fix rounds, verdict, tests, files, answers, open items)
   ⏸ any BLOCKED / QUESTIONS / TEST DISAGREES at any point → stop and ask me
 ```
 
@@ -265,7 +265,14 @@ One model per session (switching invalidates the cache). Commit at the end of ev
   - Every exit prints `[]` + a reason in the summary line; all three specialists empty → verifier skipped; unparseable replies → `[]` / merged findings + a note. Output: the array (exactly the 5 keys, major first) + `Review: <n> findings (<m> major) · raw <k> from 3 reviewers · dropped <d> by verifier · base … · spec … · CLAUDE.md …`
   - For Session 4: on `capstone/book-101` vs `main` the diff includes SPEC.md, CLAUDE.md and other docs. Planted branches should look like graders' branches (implementation only; decide whether they carry a SPEC.md)
   - Open until step 5: whether `claude -p` waits for the background agents before exiting
-- [ ] `ship-ticket/SKILL.md` from `orchestrator.md` (preflight, `.ttm/active`, stage commits, fix caps, stops, summary)
+- [x] `ship-ticket/SKILL.md` from `orchestrator.md` (preflight, `.ttm/active`, stage commits, fix caps, stops, summary). Done 2026-11-20 in a fresh build session (131 lines), with a gate change. `test-hooks.mjs`: **189 passed, 0 failed** (gate-done 14 → 22), twice. Validate: 4 hooks, 2 skills, 9 agents. Decisions:
+  - **Gate hole found and closed.** The plan had `/ship-ticket` remove `.ttm/active` at the end, so the final stop was never checked (and mid-run stops are skipped while workers run): the gate would never gate "done". Now the marker is one line, `running|done <ID> <start-sha> <iso>` (anything else = running). `done` always runs the checks (no worker skip): green → the **gate** deletes the marker (`pass-done`); red → exit 2 "the run said done but the suite is red", marker kept (`block-done`). NOT READY / BLOCKED ends run `rm -f .ttm/active` themselves (documented escape, never reported READY). Guarantee: **a run can't end READY with a red suite**
+  - Skill frontmatter: `model: sonnet`, `disable-model-invocation: true` (it commits), named `arguments: [spec]` (empty → SPEC.md), `allowed-tools` = git status/rev-parse/branch/log/`-P diff`/add/commit, `date -u` (marker time), `rm -f .ttm/active`, Read, Grep, Glob, Write, Agent, AskUserQuestion, Skill. No push/reset/checkout/stash/amend
+  - Orchestrator writes only `tickets/<ID>/run.md`, `review-<n>.json`, `.ttm/active`. Stops only for planner QUESTIONS, BLOCKED, TEST DISAGREES, caps (+ preflight: dirty tree, existing plan.md; out-of-scope changes at a commit). Unattended = AskUserQuestion can't be answered → recommendations taken, AUTO in run.md; TEST DISAGREES unattended → test-writer "change the test only if it contradicts the spec"
+  - Caps: red fix 2, test fix 2, review fix 2, planner revisions 2. TEST DISAGREES is checked before a FAIL fix round (no round wasted on a test the implementer won't change). Review = the `ticket-to-merge:review-pr` skill with `<START> tickets/<ID>/plan.md`; majors routed by path (`tests/` → test-writer, else implementer), minors → Open
+  - Stage commits add changed files **by name** under the stage's allowed paths (preflight's dirty paths never get in); out-of-scope changes → ask (default: leave uncommitted, list under Open)
+  - If the done gate blocks at READY: marker back to `running` (so waits aren't blocked), one test fix round if left, commit `(done gate)`, redo READY
+  - **`allowed-tools` lasts only "until your next message"** (skills.md); undocumented whether a background completion notice counts. So every `/ship-ticket` session starts with `--allowedTools` for the git commands, `date -u` and `rm -f .ttm/active` (Session 3 and README); the smoke test records whether the skill grant alone survives
 - [ ] Smoke each agent alone (`/tasks` shows the right model/effort, return format holds); `/review-pr` once on a tiny hand-made diff
 - [ ] `stage-costs.mjs` on the smoke session; total matches `/usage`
 - [ ] `claude plugin validate` passes; commit

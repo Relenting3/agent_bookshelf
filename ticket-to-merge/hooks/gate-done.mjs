@@ -1,11 +1,27 @@
 #!/usr/bin/env node
 // ticket-to-merge Stop hook: the done gate for /ship-ticket runs.
 //
+// Guarantee: a /ship-ticket run can't end READY with a red suite.
+//
 // Only gates while <project>/.ttm/active exists (written by /ship-ticket for the length of a
 // run). Without it, exit 0 at once: normal sessions and /review-pr are never gated.
-// With it, runs `npm run test:run` and then, if node_modules/.bin/tsc exists, `tsc --noEmit`
-// (cwd = project, 150 s budget shared by both). Both green → exit 0. Either red → exit 2 with
-// the last 40 lines of the failing output, which blocks the stop and hands that to Claude.
+// The marker holds one line, `running <ID> <start-sha> <iso>` or `done <ID> <start-sha> <iso>`.
+// A missing or unreadable first word counts as running.
+// "The checks" = `npm run test:run` and then, if node_modules/.bin/tsc exists, `tsc --noEmit`
+// (cwd = project, 150 s budget shared by both).
+//
+// - running: mid-run. Skip while background workers run (below); otherwise run the checks.
+//   Both green → exit 0. Either red → exit 2 with the last 40 lines of the failing output,
+//   which blocks the stop and hands that to Claude.
+// - done: /ship-ticket writes this right before its READY stop. Always run the checks (the
+//   worker skip doesn't apply: a READY run has nothing left to wait for). Green → delete
+//   .ttm/active and exit 0, so the run ends and later stops in the session aren't gated.
+//   Red → exit 2 with "the run said done but the suite is red" and the failure tail; the
+//   marker is kept, so every further stop is gated until the suite is green.
+//
+// NOT READY and BLOCKED ends remove .ttm/active themselves (`rm -f .ttm/active`) before they
+// stop, so they aren't gated. That is the documented escape: such a run ends with a red or
+// unchecked suite on purpose and reports itself as NOT READY, never READY.
 //
 // Why it ignores stop_hook_active: that flag only says the previous stop was already blocked
 // by a Stop hook. If we let the second stop through, an agent could stop with a red suite just
@@ -16,7 +32,7 @@
 // timeout here lets the stop through. That's why the inner timeout (150 s) sits below the hook
 // timeout (180 s in hooks.json): a hung suite still ends in a clean exit 2.
 //
-// Background workers: Stop fires every time the main session ends a turn, including a turn it
+// Background workers (running marker only): Stop fires every time the main session ends a turn, including a turn it
 // ends only to wait for background subagents (main-session subagents can't run in the
 // foreground). After /ship-ticket's red commit the suite is red on purpose, so gating those
 // waits would block every one. So before running the suite we look at the session's subagent
@@ -34,12 +50,13 @@
 // while workers run).
 //
 // Log: one line per gated invocation (i.e. while .ttm/active exists) is appended to
-// <project>/.ttm/gate.log: ISO time, decision (skip-workers-running <n> | pass | block),
-// stop_hook_active=<value>. A logging error is swallowed and never changes the decision.
+// <project>/.ttm/gate.log: ISO time, decision (skip-workers-running <n> | pass | block |
+// pass-done | block-done), stop_hook_active=<value>. A logging error is swallowed and never
+// changes the decision.
 // Project dir = CLAUDE_PROJECT_DIR, fallback input.cwd.
 
 import { spawnSync } from 'node:child_process';
-import { appendFileSync, existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { appendFileSync, existsSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { projectDirFor, readJsonStdin } from './lib.mjs';
 
@@ -49,7 +66,16 @@ const FRESH_MS = 15 * 60_000;
 
 const input = await readJsonStdin();
 const project = projectDirFor(input);
-if (!existsSync(join(project, '.ttm', 'active'))) process.exit(0);
+const marker = join(project, '.ttm', 'active');
+if (!existsSync(marker)) process.exit(0);
+
+// `done` only if the marker's first word says so; anything else (empty, unreadable) is running
+let done = false;
+try {
+  done = readFileSync(marker, 'utf8').trim().split(/\s+/)[0] === 'done';
+} catch {
+  // unreadable: running
+}
 
 function log(decision) {
   try {
@@ -85,7 +111,7 @@ function runningWorkers(transcriptPath) {
   return n;
 }
 
-const workers = runningWorkers(input?.transcript_path);
+const workers = done ? 0 : runningWorkers(input?.transcript_path);
 if (workers > 0) {
   log(`skip-workers-running ${workers}`);
   process.exit(0);
@@ -116,12 +142,19 @@ if (existsSync(tsc)) results.push(run('tsc --noEmit', tsc, ['--noEmit']));
 
 const failed = results.filter((r) => !r.ok);
 if (!failed.length) {
-  log('pass');
+  if (done) {
+    rmSync(marker, { force: true });
+    log('pass-done');
+  } else log('pass');
   process.exit(0);
 }
-log('block');
+log(done ? 'block-done' : 'block');
 
 const tail = (s) => s.replace(/\s+$/, '').split('\n').slice(-TAIL).join('\n');
-process.stderr.write('Done gate: the suite must pass before this run can stop.\n');
+process.stderr.write(
+  done
+    ? 'Done gate: the run said done but the suite is red. .ttm/active is kept; fix the suite or end the run NOT READY.\n'
+    : 'Done gate: the suite must pass before this run can stop.\n',
+);
 for (const f of failed) process.stderr.write(`\n--- ${f.label} failed (last ${TAIL} lines) ---\n${tail(f.output)}\n`);
 process.exit(2);
