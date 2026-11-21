@@ -1,0 +1,56 @@
+{
+  "description": "ticket-to-merge guardrails: protect.mjs blocks writes to bookshelf.db and src/db/seed.sql and any read or write of .env* files; guard-roles.mjs keeps the implementer out of tests/ and the reviewers/verifier read-only; tamper.mjs restores seed.sql after a Bash call that changed it; gate-done.mjs keeps a /ship-ticket run from stopping on a red suite",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Edit|Write|MultiEdit|NotebookEdit|Grep|Glob|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/protect.mjs"],
+            "onFailure": "block",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/guard-roles.mjs"],
+            "onFailure": "block",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/tamper.mjs"],
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/gate-done.mjs"],
+            "timeout": 180
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -164,3 +164,6 @@ homework/**/*.jsonl
 
 # macOS
 .DS_Store
+
+# ticket-to-merge: /ship-ticket run marker
+.ttm/

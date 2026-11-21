@@ -22,6 +22,10 @@ Due **Mon 23 Nov EOD**. Budget **~$50**. Time: most of the weekend (5 sessions b
 | Write-up | README only (no Google Doc) | The brief's deliverable |
 | SPEC format (2026-11-20) | `SPEC.md` is a **brief**: outcome, context, interface, behavior, AC-1…AC-19, constraints, out of scope, files, and a 4-step verification path (suite, `curl`, browser, scope). No implementation. The interview's first draft (244 lines, with TypeScript, SQL and htmx JS) was replaced and deleted | The brief asks for "the ticket as a brief with a verification path" (week 1's brief anatomy). The "how" is the planner's job, so the split stays defensible |
 | Interview "how" (option A) | The planner gets only `SPEC.md` and works out the implementation itself (e.g. non-ASCII case folding, where the htmx `before-swap` handler goes) | TDD catches a weaker choice (AC-3 fails, for example). Run 1 then measures whether the pipeline gets from a plain brief to green |
+| Hook files are `.mjs` (Session 1) | `protect.mjs`, `guard-roles.mjs`, `gate-done.mjs`, `tamper.mjs`, `test-hooks.mjs` (the plan said `.js`) | The repo `package.json` is `"type": "module"`, so `.js` here is ESM; on a grader's machine without a `package.json` it would load as CommonJS and `import` would crash. `.mjs` is ESM everywhere |
+| `@.env` (Session 1) | Project `.claude/settings.json` gets `permissions.deny: ["Read(./.env*)", "Read(**/.env*)"]`. README: known limit for graders (plugin-only setups) | Docs (2026-11-20): `@` mentions skip PreToolUse hooks; Read deny rules apply to them (best effort). A plugin **can't** ship permission rules (no plugin-root settings scope), so the deny rule doesn't travel with the plugin. `CLAUDE_CODE_DISABLE_FILE_MENTIONS=1` (user env, ≥ 2.1.299) is the other option, mentioned in the README |
+| Tamper check (Session 1) | Add a 4th hook, PostToolUse on Bash: if `git status --porcelain src/db/seed.sql` is non-empty, `git checkout -- src/db/seed.sql` and exit 2 telling Claude | Regexes can't see values built through variables or command output; this catches any write that slips past `protect.mjs`. Only `seed.sql` (git-tracked, restorable); `bookshelf.db` is gitignored, `.env` reads can't be undone |
+| `agent_type` form (C2, Session 1) | Documented: plugin agents appear as `ticket-to-merge:<name>`. `guard-roles.mjs` still accepts the bare name too | hooks.md: "For subagents shipped by a plugin, the agent type is the plugin-scoped identifier". Still confirm in the Session 2 smoke test (PreToolUse isn't named explicitly) |
 | `searchBooks` trims | The model trims its input, and an empty or whitespace-only query returns all books (AC-7, AC-8). The routes check the length | The hidden tests may call `searchBooks` directly |
 
 Smaller choices I made (change any of them):
@@ -108,7 +112,7 @@ Optional, only if time: copy the `pr-writer` (Haiku) + `pr-description` skill to
   → review: same steps as /review-pr (3 specialists ∥ → verifier → JSON)
   → fix loop: major findings → implementer ([src]) or test-writer ([tests]) → test-runner → review again (max 2 rounds)
         commit per fix round
-  → done: remove .ttm/active · 5-line summary (fix rounds, verdict, tests, files, open items)
+  → done: remove .ttm/active only (keep .ttm/backups/) · 5-line summary (fix rounds, verdict, tests, files, open items)
   ⏸ any BLOCKED / QUESTIONS / TEST DISAGREES at any point → stop and ask me
 ```
 
@@ -133,7 +137,8 @@ Never asks questions, never edits. Every finding has a concrete file and line, a
 |---|---|---|
 | `protect.js` | PreToolUse · `Read\|Edit\|Write\|MultiEdit\|NotebookEdit\|Bash` | Writes to `bookshelf.db` (+ `-shm`/`-wal`), `src/db/seed.sql`, any `.env*`. **Any** read of `.env*`. Bash: any command naming a protected file with a write-like op (redirects, `sed -i`, `cp/mv/rm/tee/ln/truncate`, `git checkout/restore`, `node -e`/`python -c` writes); any Bash mention of `.env`. Paths resolved (relative, `./`, `..`, symlinks via realpath, case-insensitive on macOS) |
 | `guard-roles.js` | PreToolUse · same | If `agent_type` is the plugin's implementer: no Edit/Write/Bash-write under `tests/`. If it's a reviewer or the verifier: no Edit/Write/Bash at all |
-| `gate-done.js` | Stop | Only when `.ttm/active` exists and `stop_hook_active` is false: runs `npm run test:run`; red → exit 2 with the failures. Never fires on `/review-pr` (graders) or normal sessions |
+| `gate-done.js` | Stop | Only when `.ttm/active` exists and `stop_hook_active` is false: runs `npm run test:run`; red → exit 2 with the failures. Never fires on `/review-pr` (graders) or normal sessions. Set `"timeout"` explicitly (default 600 s); `onFailure` has no effect on Stop |
+| `tamper.mjs` (added Session 1) | PostToolUse · `Bash` | `seed.sql` changed in `git status` → restore it with `git checkout --` and exit 2 so Claude is told. Backstop for writes `protect.mjs` can't see |
 
 Model the bypass list on week 1's `protect-htmx.mjs`. Bypasses to try in the red-team session (and in `test-hooks.mjs`): `cat .env`, `echo x > seed.sql` from `src/db/`, `cp /tmp/x src/db/seed.sql`, `sed -i`, `node -e "fs.writeFileSync('bookshelf.db'…)"`, `python3 -c`, `ln -s` then edit the link, `git checkout -- src/db/seed.sql`, `mv`, `$(printf 'se''ed.sql')`, `cd src/db && …`, absolute paths, upper-case names, `@.env` mention (week 4: `@` references skip PreToolUse hooks, so document it as a known limit).
 
@@ -201,7 +206,13 @@ One model per session (switching invalidates the cache). Commit at the end of ev
 
 ### Session 1 (Sat AM): plugin skeleton + guardrails
 - [x] `ticket-to-merge/.claude-plugin/plugin.json` (name, description, version, author); `claude plugin validate ./ticket-to-merge` passes. Done 2026-11-20 on Claude Code 2.1.330: "✔ Validation passed". Decisions: the manifest lists no components (default folders `skills/`, `agents/`, `hooks/hooks.json` are auto-discovered); the only warning, `ICON_MISSING`, is a plugin-directory listing check, ignored (not publishing)
-- [ ] `protect.js`, `guard-roles.js`, `gate-done.js` + `hooks.json`
+- [x] `protect.js`, `guard-roles.js`, `gate-done.js` + `hooks.json`. Done 2026-11-20 as `.mjs` (+ `tamper.mjs`, shared `lib.mjs`); validate lists all 4 hooks. Smoke-tested by hand (~110 inputs; red gate and tamper cases only in scratch temp dirs). Decisions:
+  - `protect.mjs` beyond the spec: decodes `\xNN`/`\NNN`/`\uNNNN` escapes, treats `{a,b}` as a glob, unquoted leading `*`/`?` don't match dotfiles (as in the shell; so `ls *` passes), hard links caught by inode, paths checked against both `CLAUDE_PROJECT_DIR` and `input.cwd` (worktrees), extra write ops (chown, patch, rsync, shred, editors, `awk -i inplace`, `git am`). Added after review: `git clean -x/-X` blocked; destructive ops on an ancestor dir of a protected file (`rm -rf src/db`, `cp -r x src/`) blocked; recursive `grep -r`/`rg --hidden` over the root without `--exclude='.env*'` blocked; globs with `/` match the path, not the basename (`rm -rf dist/*` passes); `install` is a write op only as the command name (`npm install` passes)
+  - Known gaps (header comment; README): `@` mentions (covered in this repo by the deny rule), `find -delete`, `git reset --hard`, `git stash`, tar/zip of a tree, anything built from variables or command output (seed.sql covered by `tamper.mjs`). Accepted over-blocking: `mv a.ts src/` (agents create files with Write)
+  - `protect.mjs` and `guard-roles.mjs` fail closed on unparseable stdin; `gate-done.mjs` and `tamper.mjs` fall back to `CLAUDE_PROJECT_DIR`
+  - `gate-done.mjs` runs `npm run test:run` + `tsc --noEmit` (if installed) **even when `stop_hook_active` is true** (changed from the plan: "must hold every time"; the built-in 8-block cap is the loop guard). 150 s inner budget under the 180 s hook timeout. ~4 s on the real repo
+  - `tamper.mjs` restores `seed.sql` from HEAD ("tracked" = in HEAD via `git ls-tree`, so a staged `git rm` is caught) and first copies the changed file to `.ttm/backups/seed.sql.<timestamp>` so a human's hand edit is recoverable. Not done: a PreToolUse snapshot keyed by `tool_use_id` (only revert changes made during the command); not needed while nobody edits seed.sql
+  - Consequence for `/ship-ticket`: at the end (and on BLOCKED) remove only `.ttm/active`, never the whole `.ttm/` folder
 - [ ] `test-hooks.mjs`: every bypass in the list above → blocked; normal reads (`seed.sql` read, `tests/` edit by the test-writer) → allowed. **Green early**: this is the first passing check
 - [ ] **Red-team session**: a fresh Claude session with `--plugin-dir` tries to modify `seed.sql`/`bookshelf.db` and read `.env` (week 1's partner role). Every attempt blocked; fix and add to `test-hooks.mjs` if not. Save the export
 - [ ] Commit
