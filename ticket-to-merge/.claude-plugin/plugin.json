@@ -1,0 +1,8 @@
+{
+  "name": "ticket-to-merge",
+  "version": "0.1.0",
+  "description": "Ships one ticket test-first with /ship-ticket and reviews a branch diff with /review-pr.",
+  "author": {
+    "name": "Paul"
+  }
+}

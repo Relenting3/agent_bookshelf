@@ -200,7 +200,7 @@ One model per session (switching invalidates the cache). Commit at the end of ev
 - [x] Commit SPEC.md + CLAUDE.md (`14487f0`, pushed)
 
 ### Session 1 (Sat AM): plugin skeleton + guardrails
-- [ ] `ticket-to-merge/.claude-plugin/plugin.json` (name, description, version, author); `claude plugin validate ./ticket-to-merge` passes
+- [x] `ticket-to-merge/.claude-plugin/plugin.json` (name, description, version, author); `claude plugin validate ./ticket-to-merge` passes. Done 2026-11-20 on Claude Code 2.1.330: "✔ Validation passed". Decisions: the manifest lists no components (default folders `skills/`, `agents/`, `hooks/hooks.json` are auto-discovered); the only warning, `ICON_MISSING`, is a plugin-directory listing check, ignored (not publishing)
 - [ ] `protect.js`, `guard-roles.js`, `gate-done.js` + `hooks.json`
 - [ ] `test-hooks.mjs`: every bypass in the list above → blocked; normal reads (`seed.sql` read, `tests/` edit by the test-writer) → allowed. **Green early**: this is the first passing check
 - [ ] **Red-team session**: a fresh Claude session with `--plugin-dir` tries to modify `seed.sql`/`bookshelf.db` and read `.env` (week 1's partner role). Every attempt blocked; fix and add to `test-hooks.mjs` if not. Save the export
