@@ -16,7 +16,7 @@
 // Not named *.test.* on purpose, so vitest never picks it up. Exit 1 if any case fails.
 
 import { spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -45,7 +45,13 @@ writeFileSync(join(ENV_DIR, 'sub', '.env.local'), '');
 const LINK = join(TMP, 'link.sql');
 symlinkSync(join(ROOT, 'src', 'db', 'seed.sql'), LINK);
 
-// gate-done projects: package.json with a test:run that exits 0 or 1
+// gate-done projects: package.json whose test:run runs suite.cjs, which touches .suite-ran
+// (proof the suite ran) and exits 0 or 1
+const writeSuite = (dir, code) =>
+  writeFileSync(
+    join(dir, 'suite.cjs'),
+    `require('fs').writeFileSync(require('path').join(__dirname, '.suite-ran'), '');\nprocess.exit(${code});\n`,
+  );
 function gateProject(name, { suite, tsc, active = true }) {
   const dir = join(TMP, name);
   mkdirSync(dir, { recursive: true });
@@ -55,8 +61,9 @@ function gateProject(name, { suite, tsc, active = true }) {
   }
   writeFileSync(
     join(dir, 'package.json'),
-    JSON.stringify({ name, private: true, scripts: { 'test:run': `node -e "process.exit(${suite})"` } }),
+    JSON.stringify({ name, private: true, scripts: { 'test:run': 'node suite.cjs' } }),
   );
+  writeSuite(dir, suite);
   if (tsc !== undefined) {
     mkdirSync(join(dir, 'node_modules', '.bin'), { recursive: true });
     writeFileSync(join(dir, 'node_modules', '.bin', 'tsc'), `#!/bin/sh\necho "tsc stub exit ${tsc}"\nexit ${tsc}\n`);
@@ -64,6 +71,42 @@ function gateProject(name, { suite, tsc, active = true }) {
   }
   return dir;
 }
+
+// A session transcript for a gate project, at <dir>/session/s1.jsonl, with one subagent per
+// entry in `workers` under <dir>/session/s1/subagents/: agent-w<i>.meta.json (meta, an object
+// or a raw string) and agent-w<i>.jsonl, back-dated by ageMin minutes. Returns transcript_path.
+const transcriptOf = (dir) => join(dir, 'session', 's1.jsonl');
+function addWorkers(dir, workers) {
+  const sub = join(dir, 'session', 's1', 'subagents');
+  mkdirSync(sub, { recursive: true });
+  writeFileSync(transcriptOf(dir), '{}\n');
+  workers.forEach(({ meta, ageMin = 0 }, i) => {
+    writeFileSync(join(sub, `agent-w${i}.meta.json`), typeof meta === 'string' ? meta : JSON.stringify(meta));
+    const jsonl = join(sub, `agent-w${i}.jsonl`);
+    writeFileSync(jsonl, '{}\n');
+    if (ageMin) {
+      const t = Date.now() / 1000 - ageMin * 60;
+      utimesSync(jsonl, t, t);
+    }
+  });
+  return dir;
+}
+const RUNNING = { agentType: 'ticket-to-merge:implementer' };
+const FINISHED = { agentType: 'ticket-to-merge:implementer', finished: true };
+
+// check for a gate case: did the suite run, and do the .ttm/gate.log decisions match `decisions`
+// (one line per call: ISO time, decision, stop_hook_active=<value>)
+const LOG_LINE = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z (.+) stop_hook_active=(true|false|unset)$/;
+const gateCheck = ({ ran, decisions }) => (dir) => {
+  if (existsSync(join(dir, '.suite-ran')) !== ran) return ran ? 'the suite did not run' : 'the suite ran (it should have been skipped)';
+  const logFile = join(dir, '.ttm', 'gate.log');
+  const lines = existsSync(logFile) ? readFileSync(logFile, 'utf8').split('\n').filter(Boolean) : [];
+  const got = lines.map((l) => {
+    const m = LOG_LINE.exec(l);
+    return m ? `${m[1]} ${m[2]}` : `bad line: ${l}`;
+  });
+  return JSON.stringify(got) === JSON.stringify(decisions) ? null : `gate.log ${JSON.stringify(got)}, expected ${JSON.stringify(decisions)}`;
+};
 
 // tamper project: a git repo with a committed src/db/seed.sql
 const REPO = join(TMP, 'tamper-repo');
@@ -102,7 +145,12 @@ const tool = (tool_name, tool_input, { cwd = ROOT, agent } = {}) => ({
   cwd,
   ...(agent ? { agent_type: agent } : {}),
 });
-const stop = (cwd, stop_hook_active = false) => ({ hook_event_name: 'Stop', stop_hook_active, cwd });
+const stop = (cwd, stop_hook_active = false, transcript_path) => ({
+  hook_event_name: 'Stop',
+  stop_hook_active,
+  cwd,
+  ...(transcript_path !== undefined ? { transcript_path } : {}),
+});
 const post = (cwd) => ({ hook_event_name: 'PostToolUse', tool_name: 'Bash', tool_input: { command: '(not run)' }, cwd });
 
 const P = (expect, input, why) => ({ group: expect ? 'protect: blocked' : 'protect: allowed', hook: 'protect', input, expect, why });
@@ -278,6 +326,16 @@ const cases = [
         { group: 'gate-done', hook: 'gate', expect: 2, why: 'green suite, red tsc', dir: () => gateProject('gate-tsc-red', { suite: 0, tsc: 1 }), input: (d) => stop(d) },
         { group: 'gate-done', hook: 'gate', expect: 0, why: 'green suite, green tsc', dir: () => gateProject('gate-tsc-green', { suite: 0, tsc: 0 }), input: (d) => stop(d) },
       ]),
+  // background workers: a running subagent (no "finished", fresh .jsonl) skips the suite
+  { group: 'gate-done', hook: 'gate', expect: 0, why: 'red suite, one running worker → skipped, suite not run', dir: () => addWorkers(gateProject('gate-w-running', { suite: 1 }), [{ meta: FINISHED }, { meta: RUNNING }]), input: (d) => stop(d, false, transcriptOf(d)), check: gateCheck({ ran: false, decisions: ['skip-workers-running 1 false'] }) },
+  { group: 'gate-done', hook: 'gate', expect: 2, why: 'red suite, all workers finished', dir: () => addWorkers(gateProject('gate-w-finished', { suite: 1 }), [{ meta: FINISHED }, { meta: FINISHED }]), input: (d) => stop(d, false, transcriptOf(d)), check: gateCheck({ ran: true, decisions: ['block false'] }) },
+  { group: 'gate-done', hook: 'gate', expect: 2, why: 'red suite, unfinished worker with a 20-min-old .jsonl (stale)', dir: () => addWorkers(gateProject('gate-w-stale', { suite: 1 }), [{ meta: RUNNING, ageMin: 20 }]), input: (d) => stop(d, false, transcriptOf(d)), check: gateCheck({ ran: true, decisions: ['block false'] }) },
+  { group: 'gate-done', hook: 'gate', expect: 2, why: 'red suite, unparseable meta.json with a fresh .jsonl', dir: () => addWorkers(gateProject('gate-w-badmeta', { suite: 1 }), [{ meta: '{"agentType": "implementer",' }]), input: (d) => stop(d, false, transcriptOf(d)), check: gateCheck({ ran: true, decisions: ['block false'] }) },
+  { group: 'gate-done', hook: 'gate', expect: 2, why: 'red suite, transcript_path points nowhere', dir: () => gateProject('gate-w-nowhere', { suite: 1 }), input: (d) => stop(d, false, join(TMP, 'nowhere', 'x.jsonl')), check: gateCheck({ ran: true, decisions: ['block false'] }) },
+  // gate.log: one line per call, same project across three calls (cases run in order)
+  { group: 'gate-done', hook: 'gate', expect: 0, why: 'gate.log 1/3: running worker → skip line', dir: () => (existsSync(join(TMP, 'gate-log')) ? join(TMP, 'gate-log') : addWorkers(gateProject('gate-log', { suite: 1 }), [{ meta: RUNNING }])), input: (d) => stop(d, false, transcriptOf(d)), check: gateCheck({ ran: false, decisions: ['skip-workers-running 1 false'] }) },
+  { group: 'gate-done', hook: 'gate', expect: 2, why: 'gate.log 2/3: worker finished, red suite, stop_hook_active → block line', dir: () => join(TMP, 'gate-log'), setup: () => writeFileSync(join(TMP, 'gate-log', 'session', 's1', 'subagents', 'agent-w0.meta.json'), JSON.stringify(FINISHED)), input: (d) => stop(d, true, transcriptOf(d)), check: gateCheck({ ran: true, decisions: ['skip-workers-running 1 false', 'block true'] }) },
+  { group: 'gate-done', hook: 'gate', expect: 0, why: 'gate.log 3/3: green suite → pass line', dir: () => join(TMP, 'gate-log'), setup: () => writeSuite(join(TMP, 'gate-log'), 0), input: (d) => stop(d, false, transcriptOf(d)), check: gateCheck({ ran: true, decisions: ['skip-workers-running 1 false', 'block true', 'pass false'] }) },
 
   // 5. tamper (temp git repo only; cases run in order) -------------------------
   { group: 'tamper', hook: 'tamper', expect: 0, why: 'seed.sql clean', dir: () => REPO, input: post, check: seedRestored },
@@ -358,7 +416,7 @@ function runHook(c) {
   let problem = null;
   if (got !== c.expect) problem = `expected ${c.expect}, got ${got}`;
   else if (c.expect === 2 && !stderr) problem = 'blocked without a reason on stderr';
-  else if (c.check) problem = c.check();
+  else if (c.check) problem = c.check(dir);
   return { problem, input, stderr };
 }
 
