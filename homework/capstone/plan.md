@@ -2,7 +2,7 @@
 
 Source: Capstone Brief (PDF + its 6 reference links), Week 4 slides + transcript (2026-11-19), my week 2 and week 3 homework. Assignment summary: [`assignment.md`](assignment.md).
 
-Due **Mon 23 Nov EOD**. Budget **~$50**. Time: most of the weekend (5 sessions below).
+Due **Mon 23 Nov EOD**. Budget **~$50** at the start; **2026-11-21 (end of Session 3, ≈ $36 spent): budget is not a constraint for now** (my call), so Session 4 runs as planned (3 branches × 3 runs, before and after the lever). Time: most of the weekend (5 sessions below).
 
 ## Decisions (from the interview, 2026-11-20)
 
@@ -349,6 +349,7 @@ One model per session (switching invalidates the cache). Commit at the end of ev
 ### Session 4 (Sun PM): planted bugs + lever
 - [ ] Claude proposes the bug list (table above); **I pick** the set and the clean traps; write why each one is there
 - [ ] Patches + `answers.json` + `make-branches.sh` + `score.mjs`; create `planted/a`, `planted/b`, `planted/clean`
+  - Note (Session 3): the plugin isn't on `main`, so a planted branch off `main` has no `ticket-to-merge/`. Run reviews from a `git worktree` of the planted branch, calling the `capstone/book-101` checkout's `scripts/review.sh` (it resolves the plugin dir from its own location). Check before the first eval run
 - [ ] `/review-pr` 3× per branch → recall/precision (before the lever)
 - [ ] Apply the lever (one change, one commit); branch `capstone/run-2` from the **same base** as run 1; repeat Session 3's steps with the same answers
 - [ ] Re-check quality: tests green, fix rounds, planted bugs 3× again → "same numbers, or what moved"
