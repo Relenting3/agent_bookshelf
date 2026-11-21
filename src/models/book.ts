@@ -19,11 +19,25 @@ export function getBookById(id: number): Book | undefined {
   return get('SELECT * FROM books WHERE id = ?', [id]) as unknown as Book | undefined;
 }
 
+export const SEARCH_MAX_LENGTH = 100;
+
+export function parseSearchQuery(
+  raw: unknown
+): { ok: true; query: string } | { ok: false; error: string } {
+  if (raw === undefined) return { ok: true, query: '' };
+  const query = (raw as string).trim();
+  if ([...query].length >= SEARCH_MAX_LENGTH) {
+    return { ok: false, error: `Search query must be ${SEARCH_MAX_LENGTH} characters or fewer` };
+  }
+  return { ok: true, query };
+}
+
 export function searchBooks(query: string): Book[] {
-  const pattern = `%${query}%`;
+  const q = query.trim();
+  if (q === '') return getAllBooks();
   return all(
-    'SELECT * FROM books WHERE title LIKE ? OR author LIKE ? ORDER BY title',
-    [pattern, pattern]
+    'SELECT * FROM books WHERE instr(ulower(title), ulower(?)) > 0 OR instr(author, ?) > 0 ORDER BY title',
+    [q, q]
   ) as unknown as Book[];
 }
 

@@ -7,6 +7,7 @@ declare module 'sql.js' {
     run(sql: string, params?: unknown[]): void;
     exec(sql: string, params?: unknown[]): QueryExecResult[];
     prepare(sql: string): Statement;
+    create_function(name: string, func: (...args: any[]) => unknown): Database;
     export(): Uint8Array;
     close(): void;
   }
