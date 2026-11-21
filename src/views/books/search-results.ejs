@@ -1,0 +1,19 @@
+<div id="search-results" hx-on::before-swap="if (event.detail.xhr.status === 400) { event.detail.shouldSwap = true; event.detail.isError = false; }">
+  <% if (error) { %>
+    <p class="error"><%= error %></p>
+  <% } else if (books.length === 0) { %>
+    <p class="no-results">No books match “<%= query %>”.</p>
+  <% } else { %>
+    <div class="book-grid">
+      <% books.forEach(book => { %>
+        <div class="book-card">
+          <h2><a href="/books/<%= book.id %>"><%= book.title %></a></h2>
+          <p class="author">by <%= book.author %></p>
+          <% if (book.published_year) { %>
+            <p class="year"><%= book.published_year %></p>
+          <% } %>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
