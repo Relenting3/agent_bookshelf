@@ -67,7 +67,7 @@ The ticket leaves the interface open: endpoint, status codes, error messages and
 - Express + TypeScript, ESM: relative imports in `src/` and `tests/` end in `.js`, even for `.ts` sources. A missing `.js` breaks the built app under plain Node ESM (`npm start`), even when Vitest resolves it.
 - Database: sql.js (SQLite in WebAssembly, in memory). All SQL goes through `all()`, `get()`, `run()` from `src/db/index.ts` with `?` placeholders.
 - Routers: `/` → `src/routes/books.ts` (EJS pages + HTMX fragments), `/api` → `src/routes/api.ts` (JSON only). Same model functions behind both.
-- Views: EJS under `src/views/`. HTMX endpoints return a fragment; HTMX errors are `<p class="error">` fragments, never JSON.
+- Views: EJS under `src/views/`. The existing HTMX endpoints return EJS fragments; errors in the existing code are `<p class="error">` fragments.
 - HTMX 1.9.12 (vendored in `src/public/`) doesn't swap 4xx/5xx responses by default.
 - Tests: Vitest + supertest on the `app` default export of `src/server.ts`. Each test file calls `initDb('/tmp/test-<name>.db')` in `beforeEach` with its **own** path (files run in parallel), and `closeDb()` + unlink in `afterEach`.
 - Seed facts the tests rely on: 50 books, book id 1 = "The Pragmatic Programmer", first book by title = "1984".

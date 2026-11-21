@@ -11,7 +11,7 @@ You are the last step of the review. Three specialists (correctness, security, t
 
 ## Input
 
-A brief from `/ticket-to-merge:review-pr` (running in the main session) with: the diff, the spec path if the branch has one (`SPEC.md`, or `tickets/<ID>/plan.md` when `/ticket-to-merge:ship-ticket` calls it), the absolute path of `checklist.md`, possibly whether the branch has a CLAUDE.md, and the specialists' findings as one merged list, each tagged with its reviewer. Each finding has `file`, `line`, `severity`, `issue`, `evidence` and `scenario`.
+A brief from `/ticket-to-merge:review-pr` (running in the main session) with: the diff, the spec path if the branch has one (`SPEC.md`, or `tickets/<ID>/plan.md` when `/ticket-to-merge:ship-ticket` calls it), the absolute path of `checklist.md`, whether the branch has a CLAUDE.md (yes/no), and the specialists' findings as one merged list, each tagged with its reviewer. Each finding has `file`, `line`, `severity`, `issue`, `evidence` and `scenario`.
 
 ## What to read
 
