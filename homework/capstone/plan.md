@@ -356,7 +356,7 @@ Already known: Claude Code is 2.1.329 (`args` + `onFailure` need ≥ 2.1.295, pl
 | Brief line | Evidence |
 |---|---|
 | Repo link: fork and branch | `Relenting3/agent_bookshelf`, `capstone/book-101` |
-| How to run `/ship-ticket` and `/review-pr` | Commands, `--plugin-dir`, model flag if C1 needs it |
+| How to run `/ship-ticket` and `/review-pr` | Two levels. **Quick start (normal use):** `claude --plugin-dir ./ticket-to-merge`, then `/ticket-to-merge:review-pr [base] [spec]` (no prompts) or `/ticket-to-merge:ship-ticket [spec]` (approve the `git add`/`git commit` prompts once; the orchestrator may fall back to the session model after the first wait). **Measured / unattended runs:** `ticket-to-merge/scripts/ship.sh [-p] [spec]` and `scripts/review.sh [-p] [base] [spec]`, which pin `--model sonnet` and pass `--allowedTools`, with the reason (a background completion notice ends a skill's `model` and `allowed-tools`; Session 2 R3) and `--dry-run` to show the exact command. Also: `claude plugin details` token costs, read the JSON from `-p` output rather than the rendered terminal |
 | SPEC.md and CLAUDE.md | Links + line count |
 | Passes `claude plugin validate` | Output |
 | Test run, green | `npm run test:run` output, one `AC-n` test per criterion |
