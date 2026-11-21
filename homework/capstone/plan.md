@@ -291,7 +291,21 @@ One model per session (switching invalidates the cache). Commit at the end of ev
   - **Session B (`8f4de772-…`, /ship-ticket SMOKE-1): $1.3753 vs /usage $1.38 (−0.34%)**; Opus within rounding, Haiku −$0.0004 (auto-mode classifier calls aren't in transcripts), Sonnet ~−$0.005 (likely title-generation/classifier calls, unconfirmed). 33 main calls = /usage's 33 requests. **Build $0.71 (91.8% cache) · Review $0.67 (93.6%) · Fix loop $0.00 none (review found no majors) · total $1.38 (92.5%)**. Per agent: orchestrator build turns $0.36 (21 calls, 1.29M cache read), planner $0.20, reviewers $0.10–0.15 each, scout and test-runner < $0.01
   - Decisions: dedupe by `message.id` (largest output wins); price by model family with the week 2 list prices (verified: A5's Sonnet tokens × prices = costUSD); cache-write split from `cache_creation.ephemeral_5m/1h`. **Stages from the main transcript's own tool calls:** T_review = first Skill `ticket-to-merge:review-pr` (fallback: first Agent call to a reviewer, skipped when the session is a typed `/review-pr` command, which logs no Skill call); T_fix = the Write of `tickets/*/review-1.json`. Main rows by timestamp, subagents by their first row. **If review-1.json has no majors (counted from that Write's content), rows after T_fix count as Review** and Fix loop shows "$0.00 · none (review found no majors)" (brief: "if review finds nothing, $0"); with majors (checked on a doctored copy), everything after T_fix is Fix loop
   - **Finding (answers R3 indirectly):** in A5 the main session ran Sonnet for 29 s, then **Opus** for the rest ($0.45): the skill's `model: sonnet` ended at the first background completion notice. So a completion notice counts as "your next message", and `allowed-tools` (same documented lifetime) ends there too. → `/ship-ticket` **requires** `--model sonnet --allowedTools …` at launch (already the plan); `/review-pr` still works (its git commands all run before the first wait), but the verifier launch and the output run on the caller's session model (+~$0.45 on Opus). README: start `/review-pr` with `--model sonnet` too
-- [ ] `claude plugin validate` passes; commit
+- [x] `claude plugin validate` passes; commit. Done 2026-11-21: validate ✔ (4 hooks, 2 skills, 9 agents; only ICON_MISSING), `test-hooks.mjs` 189/189, app suite 14/14 (base unchanged, run 1 starts green). Session costs (walkthrough session not included, as in Session 1). Sources: `/usage` where recorded; otherwise priced from the transcript with `stage-costs.mjs`, which can under-count calls that never reach a transcript (auto-mode classifier, WebFetch processing: build 1–3 came out $2.79 by script vs $3.04 by `/usage`, −8%; the /ship-ticket and /review-pr sessions were within 0.34%):
+
+  | Session | Steps | Cost | Model(s) | Source |
+  |---|---|---|---|---|
+  | Hooks (`f6ad0ce9`) | 0a probe build, 0c gate fix | $0.89 | Opus | script |
+  | Probe (`14344e03`) | 0b C5 timing | $0.22 | Sonnet main + Haiku sleepers | script |
+  | Build (`f0051bb5`) | 1–3 agents, reviewers, /review-pr | $3.04 | Opus (+ Haiku $0.03) | `/usage` (`session-2-build-usage.png`) |
+  | Build (`7ab19d0b`) | 4 /ship-ticket + done marker | $2.06 | Opus | script |
+  | Build (`f63e101a`) | 6 stage-costs.mjs | $1.48 | Opus | script |
+  | Smoke A (`9e0990b6`) | C8, C2, /review-pr interactive | $1.14 | Sonnet main + Opus reviewers | script |
+  | Smoke A5 (`21f3c8b9`) | /review-pr via `-p` | $1.19 | Opus $1.00 + Sonnet $0.19 | `review-p.json` (exact) |
+  | Smoke B (`8f4de772`) | /ship-ticket SMOKE-1 dry run | $1.38 | Sonnet + Opus + Haiku | `/usage` (pasted) |
+  | **Session 2 total** | | **≈ $11.40** | | |
+
+  Exports saved: `session-2-build.txt`, `session-2-smoke-a.txt`, `session-2-smoke-b.txt`; the others are only in `~/.claude/projects/…` (ids above). Running total with Session 1: ≈ $17.3 of the ~$50 budget (Session 0 not counted here)
 
 ### Session 3 (Sun AM): run 1 (before)
 - [ ] Branch `capstone/run-1` from `capstone/book-101`; delete `bookshelf.db`; fresh `claude --plugin-dir ./ticket-to-merge` (+ `--model sonnet` if C1 says so)
