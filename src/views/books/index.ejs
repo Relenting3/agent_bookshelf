@@ -11,23 +11,12 @@
     hx-get="/books/search"
     hx-trigger="input changed delay:300ms"
     hx-target="#search-results"
+    hx-swap="outerHTML"
     hx-indicator=".htmx-indicator"
   >
   <span class="htmx-indicator">Searching...</span>
 </div>
 
-<div id="search-results">
-  <div class="book-grid">
-    <% books.forEach(book => { %>
-      <div class="book-card">
-        <h2><a href="/books/<%= book.id %>"><%= book.title %></a></h2>
-        <p class="author">by <%= book.author %></p>
-        <% if (book.published_year) { %>
-          <p class="year"><%= book.published_year %></p>
-        <% } %>
-      </div>
-    <% }) %>
-  </div>
-</div>
+<%- include('search-results', { books, query: '', error: null }) %>
 
 <%- include('../partials/footer') %>

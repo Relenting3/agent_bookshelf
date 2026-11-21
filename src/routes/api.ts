@@ -12,6 +12,14 @@ router.get('/books', (req: Request, res: Response) => {
   res.json(books);
 });
 
+router.get('/books/search', (req: Request, res: Response) => {
+  const parsed = Book.parseSearchQuery(req.query.q);
+  if (!parsed.ok) {
+    return res.status(400).json({ error: parsed.error });
+  }
+  res.json(Book.searchBooks(parsed.query));
+});
+
 router.get('/books/:id', (req: Request, res: Response) => {
   const bookId = parseInt(req.params.id as string, 10);
   const book = Book.getBookById(bookId);

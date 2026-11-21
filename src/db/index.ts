@@ -10,6 +10,11 @@ let SQL: SqlJsStatic;
 let db: Database;
 let dbPath: string;
 
+// sql.js functions are per Database instance, not saved in the file, and dropped by db.export()
+function registerFunctions(): void {
+  db.create_function('ulower', (x: unknown) => (x == null ? null : String(x).toLowerCase()));
+}
+
 export async function initDb(path?: string): Promise<Database> {
   if (!SQL) {
     SQL = await initSqlJs({
@@ -25,6 +30,8 @@ export async function initDb(path?: string): Promise<Database> {
   } else {
     db = new SQL.Database();
   }
+
+  registerFunctions();
 
   db.run('PRAGMA foreign_keys = ON');
 
@@ -53,6 +60,7 @@ export function getDb(): Database {
 export function saveDb(): void {
   if (db) {
     const data = db.export();
+    registerFunctions();
     const buffer = Buffer.from(data);
     writeFileSync(dbPath, buffer);
   }
