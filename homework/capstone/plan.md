@@ -330,7 +330,7 @@ One model per session (switching invalidates the cache). Commit at the end of ev
   | **Total, one ticket** | **$2.80** (/usage $2.83) | **91.0%** | Sonnet $1.53 · Opus $1.25 · Haiku $0.02 |
 
   Biggest lines: review main session (Sonnet) **$0.69**, 34k output tokens in 2m 22s before the reviewers started (the diff written into 3 briefs); 3 Opus reviewers $0.70 together (security only 2 calls, 9 s, 475 output tokens: check its recall in Session 4); build orchestrator $0.50; planner $0.55 over 2 runs (the revision my answer caused)
-- [ ] `npm run test:run` green (screenshot); manual check in the browser (`npm run build && npm start`)
+- [x] `npm run test:run` green (screenshot); manual check in the browser (`npm run build && npm start`). Done 2026-11-21 on `capstone/run-1`: **44/44, 6 files** (`screenshots/session-3-run-1-tests.png`; usage screenshot `session-3-run-1-usage.png` saved too), `tsc --noEmit` exit 0. SPEC step 2 (curl, by me): all 5 checks as specified, plus `q[x]=1` → 400 single-string, HTML 101 chars → 400 `<p class="error">` inside `#search-results`, `<script>` escaped in `.no-results`. **SPEC step 3 (browser, me): pass** (weir 2 cards, clear → 50, 101 chars → red error in the results, then dune works, `<script>` shown as text). **AC-18's swap is now proven.** Step 4 (scope): `seed.sql`, `schema.sql`, `package.json` unchanged; the only file outside "Files likely touched" is `src/types/sql.js.d.ts` (typing for `create_function`). README note: port 3000 was taken by Docker here, so the server ran with `PORT=3100` (`src/server.ts` reads `PORT`)
 - [ ] Pick the lever from the per-stage table
 
 ### Session 4 (Sun PM): planted bugs + lever
