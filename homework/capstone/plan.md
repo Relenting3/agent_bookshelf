@@ -314,9 +314,22 @@ One model per session (switching invalidates the cache). Commit at the end of ev
   - No permission mode set (runs inherit the user's; run 1 and run 2 both auto). The exact command is printed to stderr, one argument per line; `--dry-run` prints and exits 0; `CLAUDE_BIN` overrides the binary (tests). Plugin dir resolved through symlinks
   - Errors exit 2: missing spec, `--budget` without `-p`, non-numeric budget, unknown option, a second spec, review.sh spec without base
   - Checks: `bash -n` under bash 5.2 and macOS bash 3.2; dry runs; a stub `CLAUDE_BIN` run from `/tmp` (each rule arrives as one argument, plugin dir absolute); drift on a scratch copy → exit 3; validate passes. shellcheck not installed
-- [ ] Branch `capstone/run-1` from `capstone/book-101`; delete `bookshelf.db`; start with `ticket-to-merge/scripts/ship.sh` (it adds `--model sonnet` and the `--allowedTools`)
-- [ ] `/ticket-to-merge:ship-ticket SPEC.md`, answer its stops; record answers (run 2 repeats them)
-- [ ] `/usage` screenshot, `/export`, `stage-costs.mjs` → `tickets/BOOK-101/costs-run-1.md`; fix rounds noted
+- [x] Branch `capstone/run-1` from `capstone/book-101`; delete `bookshelf.db`; start with `ticket-to-merge/scripts/ship.sh` (it adds `--model sonnet` and the `--allowedTools`). Done 2026-11-21: `capstone/run-1` off `4ae8fe7`, Smoke B's gate log moved to `.ttm/gate-smoke-b.log`, no `tickets/` folder before the run, `ship.sh` with no arguments (spec defaults to `SPEC.md`), session `6707370a-…`, **auto mode** (from the transcript)
+- [x] `/ticket-to-merge:ship-ticket SPEC.md`, answer its stops; record answers (run 2 repeats them). Done 2026-11-21: **READY** in 19m 42s wall / 10m 8s API, no permission prompts, no extra turns typed. Commits: red `6b77b67` · green `fcf965c` · summary `f383d27` (+ cost table `75c6790`). Fix rounds: **red 1/2** (two RED-WRONG AC-3 tests fixed by the test-writer) · tests 0/2 · review 0/2 · **planner revisions 1**. Review round 1: **0 findings** (raw 0 from 3 reviewers, verifier skipped; spec = `plan.md`). `gate.log`: 11 × `skip-workers-running`, 1 `pass`, then `pass-done`; marker gone. 7 PASSES-ALREADY (AC-1, AC-2, 2 × AC-4, AC-5 on the model's old LIKE; AC-7 route order; AC-18 home page), all legitimate. **Answers (run 2 gives the same ones):**
+  1. "Where should matching run?" → **Unicode `lower()` UDF in sql.js** (my choice, *not* the planner's recommended JS filter → the planner revision)
+  2. "Where should the shared validator live?" → **`parseSearchQuery` in `src/models/book.ts`** (Recommended)
+  - Result: `ulower` UDF (`String.toLowerCase`) registered in `initDb` and again after `db.export()` in `saveDb` (export drops functions; implementer deviation, with the `create_function` typing in `src/types/sql.js.d.ts`, the one file outside SPEC's "Files likely touched"); `instr(ulower(col), ulower(?))` (wildcards literal, `?` only); `parseSearchQuery` (non-string → 400, trim, code-point length); shared `search-results.ejs` partial with `hx-on::before-swap` letting 400 swap, `hx-swap="outerHTML"`
+  - For Session 4: one test is named after the implementation (`AC-3: ulower is registered after every initDb`), so the test-writer used the plan's implementation choice. Not a finding (it's a test), but say so in the design section. AC-19 has no test of its own (its proof is the existing test files staying unchanged)
+- [x] `/usage` screenshot, `/export`, `stage-costs.mjs` → `tickets/BOOK-101/costs-run-1.md`; fix rounds noted. Done 2026-11-21. `/usage` **$2.83** (text pasted in the walkthrough; screenshot `screenshots/session-3-run-1-usage.png` pending); export `session-3-run-1.txt`. Script **$2.80, −0.98%** (Haiku/Sonnet calls that never reach a transcript: classifier, title). Main cache 97%, 40 requests, no misses:
+
+  | Stage | Cost | Cache hit | Models |
+  |---|---|---|---|
+  | Build | $1.41 | 90.5% | Sonnet $0.84 · Opus $0.55 · Haiku $0.02 |
+  | Review | $1.39 | 91.9% | Opus $0.70 · Sonnet $0.69 |
+  | Fix loop | $0.00 | n/a | none (review found no majors) |
+  | **Total, one ticket** | **$2.80** (/usage $2.83) | **91.0%** | Sonnet $1.53 · Opus $1.25 · Haiku $0.02 |
+
+  Biggest lines: review main session (Sonnet) **$0.69**, 34k output tokens in 2m 22s before the reviewers started (the diff written into 3 briefs); 3 Opus reviewers $0.70 together (security only 2 calls, 9 s, 475 output tokens: check its recall in Session 4); build orchestrator $0.50; planner $0.55 over 2 runs (the revision my answer caused)
 - [ ] `npm run test:run` green (screenshot); manual check in the browser (`npm run build && npm start`)
 - [ ] Pick the lever from the per-stage table
 
