@@ -1,0 +1,23 @@
+# Run: BOOK-101 · READY
+- Verdict: READY
+- Fix rounds: red 1/2 · tests 0/2 · review 0/2 · planner revisions 1
+- Tests: Tests: 44/44 passed · Typecheck: OK
+- Review: Review: 0 findings (0 major) · raw 0 from 3 reviewers · dropped 0 by verifier · base 4ae8fe747672e1a26595a302460ce5e09d5108d3 4ae8fe7 · spec tickets/BOOK-101/plan.md · CLAUDE.md yes
+- Files: src/db/index.ts, src/models/book.ts, src/routes/api.ts, src/routes/books.ts, src/types/sql.js.d.ts, src/views/books/index.ejs, src/views/books/search-results.ejs, tests/models/book-search.test.ts, tests/routes/search-api.test.ts, tests/routes/search-html.test.ts, tickets/BOOK-101/plan.md (plus tickets/BOOK-101/review-1.json and run.md in the summary commit)
+- Questions and answers:
+  - Where should matching run? → Unicode lower() UDF in sql.js (not the recommended JS filter; caused planner revision 1)
+  - Where should the shared validator live? → parseSearchQuery in src/models/book.ts (Recommended)
+- PASSES-ALREADY:
+  - PASSES-ALREADY tests/models/book-search.test.ts › searchBooks › AC-1: searchBooks matches title in any case
+  - PASSES-ALREADY tests/models/book-search.test.ts › searchBooks › AC-2: searchBooks matches author HERBERT
+  - PASSES-ALREADY tests/models/book-search.test.ts › searchBooks › AC-4: phrase matches within one field
+  - PASSES-ALREADY tests/models/book-search.test.ts › searchBooks › AC-4: words split across title and author don't match
+  - PASSES-ALREADY tests/models/book-search.test.ts › searchBooks › AC-5: results ordered as in getAllBooks
+  - PASSES-ALREADY tests/routes/search-api.test.ts › GET /api/books/search › AC-7: search route is not caught by /api/books/:id
+  - PASSES-ALREADY tests/routes/search-html.test.ts › GET /books/search (HTML fragment) › AC-18: home page has 50 cards and input targets #search-results
+- Open:
+  - Red fix round 1: two tests were RED-WRONG (`AC-3: ulower is registered after every initDb`, `AC-3: API search mieville without accent returns []`); fixed by the test-writer, second RED check clean.
+  - Implementer deviations from the plan: `src/types/sql.js.d.ts` also changed (add `create_function` typing), and `saveDb` re-registers `ulower` after `db.export()` because export drops registered functions.
+  - The test-runner ran the typecheck as the hook-rewritten `rtk tsc --noEmit`, not the literal `npx tsc --noEmit`.
+  - Still to do by hand (SPEC verification steps 2 to 4): API curl checks, browser end-to-end check of the htmx 400 swap, scope diff against main.
+- Commits: START 4ae8fe7 · BOOK-101: failing tests (red) 6b77b67 · BOOK-101: implement (green) fcf965c · BOOK-101: run summary (READY) (this commit)
