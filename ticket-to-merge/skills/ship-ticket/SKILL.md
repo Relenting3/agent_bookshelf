@@ -86,7 +86,7 @@ Brief `ticket-to-merge:test-writer`. `BLOCKED` → BLOCKED. Note the new test fi
 
 ### 6. Review (round n = 1, 2, 3)
 
-Invoke the skill `ticket-to-merge:review-pr` with arguments `<START> <DIR>plan.md`. Follow its steps; its "never ask, never write, print and stop" rules end the review step, not this run. Write its JSON array, exactly as printed, to `<DIR>review-<n>.json`. Note its `Review:` summary line.
+Invoke the skill `ticket-to-merge:review-pr` with arguments `<START> <DIR>plan.md`. Follow its steps; its "never ask, never write, print and stop" rules end the review step, not this run. Write its JSON array (the content of its ```` ```json ```` fence, without the fence lines) to `<DIR>review-<n>.json`. Note its `Review:` summary line.
 - No `"severity": "major"` findings → step 8 READY.
 - Majors and review fix rounds left → step 7. Majors after 2 review fix rounds → NOT READY.
 

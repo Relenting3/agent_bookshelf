@@ -88,11 +88,21 @@ Parse its reply as a JSON object (strip a stray fence). Result = its `findings`;
 
 ## 7. Output
 
-Make each result item exactly `{"file", "line", "severity", "issue", "evidence"}` (drop any other key), sorted major first, then by file and line. Then print **only** this, with no prose before or after and no code fence:
+Make each result item exactly `{"file", "line", "severity", "issue", "evidence"}` (drop any other key), sorted major first, then by file and line. Then print **only** this, with no prose before or after: the array **pretty-printed with a 2-space indent inside a ```` ```json ```` fence** (people read it in a terminal that renders markdown; the fence keeps the evidence verbatim, and scripts strip the fence before parsing), then the summary line below the fence:
 
+````
+```json
+[
+  {
+    "file": "…",
+    "line": 0,
+    "severity": "major",
+    "issue": "…",
+    "evidence": "…"
+  }
+]
 ```
-[ …the JSON array… ]
 Review: <n> findings (<m> major) · raw <raw> from 3 reviewers · dropped <dropped> by verifier · base <ref> <short-sha> · spec <path|none> · CLAUDE.md yes|no
-```
+````
 
-Add ` · notes: <note>; <note>` to the end of the summary line only if there are notes. Empty result → the array line is `[]`.
+Add ` · notes: <note>; <note>` to the end of the summary line only if there are notes. Empty result → the fence holds `[]`. The early exits in steps 1 and 3 use the same shape: a fence holding `[]`, then their `Review:` line.
