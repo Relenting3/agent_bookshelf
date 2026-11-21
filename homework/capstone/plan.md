@@ -335,6 +335,16 @@ One model per session (switching invalidates the cache). Commit at the end of ev
   - `review-pr/SKILL.md` step 3.4: `git -P diff --output=<file> <sha> EXCL` (git writes the file itself: no shell redirect, so the existing `Bash(git -P diff *)` rule still matches and the launchers' rule lists don't change); briefs in steps 4 and 6 carry `Diff: Read <file>` instead of the diff. Reviewers and verifier get exactly the same diff text, so quality should hold; that is what the re-check measures
   - To settle when building it: where the file goes (inside the repo, e.g. `.ttm/review-<session>.diff`, excluded from the diff and untracked list, vs a temp dir that a subagent's Read might need a permission for in `-p`), the session-unique name (`${CLAUDE_SESSION_ID}` substitution?), and the README wording ("/review-pr writes nothing" becomes "writes only its diff file")
   - Expected: ≈ $0.35–0.45 less per review and ~2 min shorter review stage; run 2's Review row and Session 4's after-lever eval runs show the real number
+- Session 3 costs (sources: `/usage` text pasted in the walkthrough; screenshots where saved):
+
+  | Session | Steps | Cost | Model(s) | Source |
+  |---|---|---|---|---|
+  | Launchers build | ship.sh, review.sh | not recorded (in Session 2's walkthrough period) | Opus | — |
+  | Run 1 (`6707370a`) | /ship-ticket BOOK-101 | $2.83 | Sonnet $1.56 · Opus $1.25 · Haiku $0.02 | `/usage` (`session-3-run-1-usage.png`); script $2.80 |
+  | Walkthrough (this guide) | run 1 checks, verification, lever | $2.07 | Opus (+ Haiku $0.0005) | `/usage` text (no screenshot); export `session-3-walkthrough.txt`; 28 requests, 96% cache, 4m 46s API / 31m 11s wall |
+  | **Session 3 total** | | **$4.90** | | |
+
+  Running total ≈ $36 of ~$50 (Sessions 1–3 incl. their walkthroughs except Session 1's; Session 0 not counted). The walkthrough cost dropped from $13.80 (Session 2) to $2.07
 
 ### Session 4 (Sun PM): planted bugs + lever
 - [ ] Claude proposes the bug list (table above); **I pick** the set and the clean traps; write why each one is there
