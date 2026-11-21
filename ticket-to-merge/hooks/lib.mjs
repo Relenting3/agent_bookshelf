@@ -193,6 +193,53 @@ export function normalise(s) {
     .replace(/['"\\]/g, '');
 }
 
+// Simple shell assignments: NAME=value (also export/local/declare/readonly/typeset NAME=value).
+// Later $NAME / ${NAME} are replaced with the value, in order, so chains (A=x; B=$A.sql) resolve.
+// Values that contain $ or a backtick (command output, other variables not yet known) are left
+// alone: their references stay unresolved and protect.mjs treats them as runtime-built targets.
+const ASSIGN =
+  /(^|[\s;&|('"`])((?:export|local|declare|readonly|typeset)(?:\s+-\w+)*\s+)?([A-Za-z_]\w*)=('[^']*'|"(?:[^"\\]|\\.)*"|[^\s;&|()<>'"`]*)/g;
+
+export function substituteVars(command) {
+  let out = command;
+  let from = 0;
+  for (let n = 0; n < 200; n++) {
+    ASSIGN.lastIndex = from;
+    const m = ASSIGN.exec(out);
+    if (!m) break;
+    const end = m.index + m[0].length;
+    const name = m[3];
+    const value = m[4].replace(/^(['"])([\s\S]*)\1$/, '$2');
+    if (!/[$`]/.test(value)) {
+      const ref = new RegExp(`\\$\\{${name}\\}|\\$${name}(?![A-Za-z0-9_])`, 'g');
+      out = out.slice(0, end) + out.slice(end).replace(ref, () => value);
+    }
+    from = end;
+  }
+  return out;
+}
+
+// String concatenation in one-liners: 'a' + 'b', "a" + "b" (any spacing, mixed quote kinds,
+// \"-escaped quotes inside a double-quoted shell string) and Python adjacent literals 'a' 'b'
+// all collapse to 'ab'. Adjacent literals are also separate shell words, so callers check this
+// as an extra variant of the command, never instead of the original.
+const CONCAT = /\\?(['"])([^'"\n\\]*)\\?\1(?:\s*\+\s*|[ \t]+)\\?(['"])([^'"\n\\]*)\\?\3/;
+
+export function collapseConcat(s) {
+  for (let n = 0; n < 200; n++) {
+    const next = s.replace(CONCAT, (_, q, a, _q2, b) => `${q}${a}${b}${q}`);
+    if (next === s) break;
+    s = next;
+  }
+  return s;
+}
+
+// The command variants a Bash check should look at (blocking on any of them).
+export function commandVariants(command) {
+  const subst = substituteVars(command);
+  return [...new Set([subst, collapseConcat(subst)])];
+}
+
 // Sub-tokens of a word (splits nested commands like bash -c '...' and --opt=value).
 export const subTokens = (text) => text.split(/[\s;|&<>()`=:]+/).filter(Boolean);
 

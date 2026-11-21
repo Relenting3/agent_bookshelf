@@ -11,13 +11,18 @@
 // links caught by inode, compared case-insensitively on darwin/win32. Grep/Glob are also
 // blocked when their glob/pattern can match a .env* name.
 //
-// Bash: a normalised copy of the command (quotes and backslashes removed, \xNN \NNN \uNNNN
-// escapes decoded) is checked for:
+// Bash: simple assignments are substituted first (NAME=value, export/local/declare NAME=value;
+// later $NAME and ${NAME} become the value), and the command is checked both as is and with
+// string concatenation collapsed ('a' + 'b', "a" + "b", Python 'a' 'b' → 'ab'). Each variant is
+// normalised (quotes and backslashes removed, \xNN \NNN \uNNNN escapes decoded) and checked for:
 //   - any mention of a .env name (process.env does not count; --exclude=.env* doesn't either);
 //   - a write-protected basename (any directory) together with a write-like op: a > / >>
 //     redirect to it, sed/perl -i, tee rm mv cp truncate dd ln chmod touch unlink...,
 //     `install` as a command name, git checkout/restore/rm/mv/apply, sqlite3, interpreter
 //     write calls (writeFile, open(..,'w'));
+//   - a write-protected name anywhere in the command plus a write target (redirect, tee,
+//     cp/mv/ln/install/dd destination, interpreter write-call argument) that still contains
+//     $, $( or a backtick after substitution: the target is built at run time;
 //   - shell glob tokens (* ? [ ] and {a,b}) that can expand to one of those names. A glob
 //     with a / is matched against the full path (so dist/* is fine, src/db/* is not);
 //   - git clean with -x / -X (deletes the gitignored bookshelf.db and .env files);
@@ -34,9 +39,15 @@
 // Known limits:
 //   - @-mentions (@.env in a prompt) are read by Claude Code without a tool call, so no
 //     PreToolUse hook sees them.
-//   - Names built through variables or command output ($F, $(ls | grep en), base64 -d, ...)
-//     can't be seen by a regex; `cd $DIR` makes the cwd unknown (relative targets of the
-//     directory checks are then blocked).
+//   - Only literal assignments in the same command are substituted. Names that come from
+//     command output ($(ls | grep en), base64 -d), `read`, arrays, eval, sourced files or an
+//     earlier Bash call can't be seen; a runtime-built write target is only caught when the
+//     protected name also appears in the same command. The tamper hook restores seed.sql
+//     after the fact; bookshelf.db has no such backstop. `cd $DIR` with an unknown DIR makes
+//     the cwd unknown (relative targets of the directory checks are then blocked).
+//   - String building in one-liners beyond 'a' + 'b' and 'a' 'b' isn't followed: .join(),
+//     concat(), template literals, variables inside the script, chr()/String.fromCharCode,
+//     % / f-string formatting.
 //   - Programs that open .env on their own (dotenv, npm scripts), other recursive readers
 //     (tar, zip, cp -r of a whole tree, find -exec cat, git grep, ag/ack) and other
 //     destructive commands (find -delete, git reset --hard, git stash) aren't caught unless
@@ -52,6 +63,7 @@ import {
   baseDirOf,
   block,
   canonical,
+  commandVariants,
   expandBraces,
   failClosed,
   findEnvFile,
@@ -219,7 +231,31 @@ const DELETES_ALL = new Set(['rm', 'rmdir', 'unlink', 'shred', 'mv']);
 const COPIES = new Set(['cp', 'rsync']);
 const CHANGES_RECURSIVE = new Set(['chmod', 'chown', 'chgrp']);
 
+// Where a command writes: redirect targets, tee args, cp/mv/ln/install destinations, dd of=,
+// and the arguments of interpreter write calls. Used to spot targets built at run time.
+const WRITE_CALL_ARGS =
+  /\b(?:writeFile|appendFile|createWriteStream|copyFile|rename|unlink|truncate|symlink|link|rm|open|write_text|write_bytes|file_put_contents)(?:Sync)?\s*\(([^)]*)/gi;
+
+function writeTargets(normalised, segments) {
+  const out = [...normalised.matchAll(REDIRECT_TARGET)].map((m) => m[1]);
+  for (const seg of segments) {
+    out.push(...seg.redirects.map((r) => r.text));
+    const pos = positionals(seg.args).map((a) => a.text);
+    if (seg.name === 'tee') out.push(...pos);
+    if (['cp', 'mv', 'ln', 'install'].includes(seg.name) && pos.length) out.push(pos[pos.length - 1]);
+    if (seg.name === 'dd') out.push(...seg.args.filter((a) => a.text.startsWith('of=')).map((a) => a.text.slice(3)));
+  }
+  out.push(...[...normalised.matchAll(WRITE_CALL_ARGS)].map((m) => m[1]));
+  return out;
+}
+
+// Check the command as given (with simple variables substituted) and with string
+// concatenation collapsed; any variant that would block, blocks.
 function checkBash(command, input, prot) {
+  for (const variant of commandVariants(command)) checkVariant(variant, input, prot);
+}
+
+function checkVariant(command, input, prot) {
   const normalised = normalise(command);
   const dotglob = /\b(dotglob|GLOBIGNORE)\b/i.test(normalised);
   const segments = parseCommand(command, baseDirOf(input));
@@ -307,6 +343,14 @@ function checkBash(command, input, prot) {
   }
 
   const named = WRITE_NAME.exec(normalised);
+
+  // write target built at run time ($VAR left unresolved, $(...), backticks) + a protected name
+  if (named) {
+    const dynamic = writeTargets(normalised, segments).find((t) => /[$`]/.test(t));
+    if (dynamic)
+      block(`write target ${dynamic.trim() === '$' ? '$(...)' : dynamic.trim()} is built at runtime from a value naming ${named[1]}: ${writeReason(named[1])}`);
+  }
+
   const writeLike = isWriteLike(normalised, segments);
   if (writeLike && named) block(`the command names ${named[1]} and has a write-like operation: ${writeReason(named[1])}`);
   if (writeLike && globWrite.length) {
