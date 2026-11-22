@@ -43,6 +43,8 @@ Working tree against the merge-base, so line numbers match the files on disk:
 3. If the diff and the untracked list are both empty → output `[]` and `Review: 0 findings · no changes against <ref> <short-sha>`, then stop.
 4. If the `--stat` total (insertions + deletions) is about 1,600 or less (≈ 2,000 diff lines): `git -P diff <sha> EXCL` and pass it in full. Otherwise **large mode**: don't fetch the full diff; pass the `--stat` and the file list, and tell the reviewers to Read the changed files.
 
+**The diff goes into every brief verbatim** (steps 4 and 6): the complete `git -P diff` output, every line, unedited, however long. Never summarize, shorten or describe it, never replace it with "Read the changed files" (that is large mode only), and never characterise the code in a brief (no "safe", "bound params", "looks correct"). The agents judge the code; a summary written here decides for them what they see.
+
 ## 4. Three reviewers, in one message
 
 Launch `ticket-to-merge:reviewer-correctness`, `ticket-to-merge:reviewer-security` and `ticket-to-merge:reviewer-tests-rules` **in a single message** (three Agent calls), always with these scoped names. They get the same brief:
@@ -56,7 +58,7 @@ Context:
 - Changed files (name-status): <list>
 - Untracked files (Read these in full): <list | none>
 - Diff:
-<full diff>   (large mode: "Too large to include. --stat below; Read the changed files." + the --stat)
+<the full git -P diff output, verbatim>   (large mode: "Too large to include. --stat below; Read the changed files." + the --stat)
 Constraints: Review only this diff. Read-only. No questions.
 Return: a JSON array of {file, line, severity, issue, evidence, scenario}; [] if nothing is found.
 ```
@@ -78,7 +80,7 @@ Context:
 - Base: <ref> (<sha>) · repo root: <path>
 - Spec: <path | none> · CLAUDE.md: <yes | no>
 - Checklist: <absolute checklist path>
-- Diff: <the same diff, or the large-mode --stat and file list>
+- Diff: <the same full diff, verbatim, or the large-mode --stat and file list>
 - Findings (<raw>, tagged by reviewer): <the merged JSON array>
 Constraints: Read-only. No questions. Don't add findings.
 Return: {"findings": [...], "dropped": [...]}
