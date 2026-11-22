@@ -1,0 +1,9 @@
+[
+  {
+    "branch": "clean",
+    "file": "tests/models/book-search.test.ts",
+    "line": 24,
+    "label": "real",
+    "note": "No test sends a word fragment (all queries are whole words), so a whole-word matcher passes the suite: T1 'partial' untested (T5). Seen in pilot clean-1-wakeup; applies to every run of clean"
+  }
+]

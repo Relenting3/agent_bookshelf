@@ -87,6 +87,9 @@ prompt=/ticket-to-merge:review-pr
 
 cmd=("${CLAUDE_BIN:-claude}" --model sonnet --plugin-dir "$PLUGIN_DIR")
 [ $print -eq 0 ] || cmd+=(-p --output-format json --max-budget-usd "$budget")
+# No ScheduleWakeup: in the Session 4 pilot the main session scheduled a 20-min "fallback" wakeup
+# while waiting for a reviewer; -p then waited for it and printed the wakeup turn, not the review.
+cmd+=(--disallowedTools ScheduleWakeup)
 cmd+=(--allowedTools "${RULES[@]}")
 cmd+=(${extra[@]+"${extra[@]}"})
 # --allowedTools is variadic: "--" stops it from taking the prompt as one more rule.
