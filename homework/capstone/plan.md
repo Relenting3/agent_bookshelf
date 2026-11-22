@@ -347,7 +347,25 @@ One model per session (switching invalidates the cache). Commit at the end of ev
   Running total ≈ $36 of ~$50 (Sessions 1–3 incl. their walkthroughs except Session 1's; Session 0 not counted). The walkthrough cost dropped from $13.80 (Session 2) to $2.07
 
 ### Session 4 (Sun PM): planted bugs + lever
-- [ ] Claude proposes the bug list (table above); **I pick** the set and the clean traps; write why each one is there
+- [x] Claude proposes the bug list (table above); **I pick** the set and the clean traps; write why each one is there. Done 2026-11-22: **8 plants (4 + 4) + a clean branch**, all patches on run 1's implementation (`capstone/run-1` 75c6790, `src/` + `tests/` only). Every plant breaks the plain 5-AC ticket (checklist T1–T5), so it is a bug without a spec:
+
+  | # | Branch | Plant | Where | Breaks | Why it's there |
+  |---|---|---|---|---|---|
+  | P1 | a | SQL built with a template literal + hand-rolled `'`→`''` escaping | `book.ts` searchBooks | T4 | The classic; injection tests still pass, so only reading the code catches it |
+  | P2 | a | Length checked on the raw value, before trim | `book.ts` parseSearchQuery | T3 | Order bug: 100 chars padded with spaces → 400 |
+  | P6 | a | HTML route renders no books for an empty query (`query ? search : []`) | `books.ts` | T2 | Bug on one of the two routes only |
+  | P7 | a | `<%- query %>` in the no-results line | `search-results.ejs` | XSS | Headline security bug, next to the `<%- include %>` trap |
+  | P3 | b | `>=` off-by-one; the "100 chars" tests send 99 | `book.ts` + tests | T3, T5 | A test that pins the bug (B10) |
+  | P4 | b | Author match case-sensitive (`instr(author, ?)`, title still folds) | `book.ts` searchBooks | T1 | Subtle: half the fold is there |
+  | P9 | b | typeof check removed, `(raw as string).trim()` | `book.ts` parseSearchQuery | T3 | `?q=a&q=b` → 500 with a stack trace (crash ≠ validation error) |
+  | P11 | b | `search-api.test.ts` reuses `/tmp/test-api.db` (api.test.ts's path) | tests | test isolation | Parallel files clobber each other's DB; the only test-only plant |
+
+  Decisions:
+  - **Clean traps:** `planted/clean` = run 1 unchanged. Traps already in it: template literal in the length error message, `<%- include %>`, the `ulower` UDF, inline `hx-on::before-swap` JS, `[...q].length`. Every non-planted line of `a`/`b` is clean code too
+  - **Base `upstream/main` 0e6fb66, no SPEC.md, no CLAUDE.md:** exactly the graders' base (Alex's repo has neither; `src/`/`tests/` identical to our `main`). Reviewers use the checklist's 5-AC fallback. `/review-pr`'s default base still works: merge-base with `main` = 0e6fb66. Each branch is **one commit** with a neutral message (nothing in git names a plant)
+  - **Green suite on every planted branch:** only the tests that would expose a plant are dropped or bent (P2: padded/150-space cases; P3: 100 → 99; P4: `HERBERT`/`weir` → `Herbert`/`Weir`; P6: AC-14; P7: AC-17; P9: AC-10); the bent test lines are extra locations of the same plant in `answers.json`. The reviewer must read the code, not spot a red test
+  - **Scoring:** file + line ±3 **and** a per-plant keyword regex (P3/P9 are 1–2 lines apart in `parseSearchQuery`); each finding hits at most one plant; recall = found ÷ 8 per run; unmatched findings labelled real/false by hand
+  - **Eval runs** from sibling worktrees (outside the repo, so no ancestor CLAUDE.md loads) with `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1` (worktrees share this repo's auto memory, which describes the capstone)
 - [ ] Patches + `answers.json` + `make-branches.sh` + `score.mjs`; create `planted/a`, `planted/b`, `planted/clean`
   - Note (Session 3): the plugin isn't on `main`, so a planted branch off `main` has no `ticket-to-merge/`. Run reviews from a `git worktree` of the planted branch, calling the `capstone/book-101` checkout's `scripts/review.sh` (it resolves the plugin dir from its own location). Check before the first eval run
 - [ ] `/review-pr` 3× per branch → recall/precision (before the lever)
