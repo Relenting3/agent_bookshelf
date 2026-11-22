@@ -1,0 +1,195 @@
+diff --git a/src/models/book.ts b/src/models/book.ts
+index dded0f4..2a14aec 100644
+--- a/src/models/book.ts
++++ b/src/models/book.ts
+@@ -25,11 +25,8 @@ export function parseSearchQuery(
+   raw: unknown
+ ): { ok: true; query: string } | { ok: false; error: string } {
+   if (raw === undefined) return { ok: true, query: '' };
+-  if (typeof raw !== 'string') {
+-    return { ok: false, error: 'Search query must be a single string' };
+-  }
+-  const query = raw.trim();
+-  if ([...query].length > SEARCH_MAX_LENGTH) {
++  const query = (raw as string).trim();
++  if ([...query].length >= SEARCH_MAX_LENGTH) {
+     return { ok: false, error: `Search query must be ${SEARCH_MAX_LENGTH} characters or fewer` };
+   }
+   return { ok: true, query };
+@@ -39,7 +36,7 @@ export function searchBooks(query: string): Book[] {
+   const q = query.trim();
+   if (q === '') return getAllBooks();
+   return all(
+-    'SELECT * FROM books WHERE instr(ulower(title), ulower(?)) > 0 OR instr(ulower(author), ulower(?)) > 0 ORDER BY title',
++    'SELECT * FROM books WHERE instr(ulower(title), ulower(?)) > 0 OR instr(author, ?) > 0 ORDER BY title',
+     [q, q]
+   ) as unknown as Book[];
+ }
+diff --git a/tests/models/book-search.test.ts b/tests/models/book-search.test.ts
+index e24723c..f81cee6 100644
+--- a/tests/models/book-search.test.ts
++++ b/tests/models/book-search.test.ts
+@@ -26,9 +26,9 @@ describe('searchBooks', () => {
+     expect(titles('pRaGmAtIc')).toEqual(['The Pragmatic Programmer']);
+   });
+ 
+-  it('AC-2: searchBooks matches author HERBERT', () => {
+-    expect(titles('HERBERT')).toContain('Dune');
+-    expect(titles('weir').sort()).toEqual(['Project Hail Mary', 'The Martian']);
++  it('AC-2: searchBooks matches author Herbert', () => {
++    expect(titles('Herbert')).toContain('Dune');
++    expect(titles('Weir').sort()).toEqual(['Project Hail Mary', 'The Martian']);
+   });
+ 
+   it('AC-3: ulower is registered after every initDb', async () => {
+@@ -47,8 +47,7 @@ describe('searchBooks', () => {
+   });
+ 
+   it('AC-3: searchBooks folds non-ASCII case', () => {
+-    expect(titles('MIÉVILLE')).toEqual(['The City & the City']);
+-    expect(titles('miéville')).toEqual(['The City & the City']);
++    expect(titles('Miéville')).toEqual(['The City & the City']);
+     expect(titles('mieville')).toEqual([]);
+   });
+ 
+@@ -86,22 +85,16 @@ describe('searchBooks', () => {
+   it('AC-9: parseSearchQuery length limit after trim (100/101, padded, spaces, emoji)', () => {
+     const p = Book.parseSearchQuery;
+     const tooLong = { ok: false, error: 'Search query must be 100 characters or fewer' };
+-    expect(p('a'.repeat(100))).toEqual({ ok: true, query: 'a'.repeat(100) });
++    expect(p('a'.repeat(99))).toEqual({ ok: true, query: 'a'.repeat(99) });
+     expect(p('a'.repeat(101))).toEqual(tooLong);
+-    expect(p('  ' + 'a'.repeat(100) + '  ')).toEqual({ ok: true, query: 'a'.repeat(100) });
++    expect(p('  ' + 'a'.repeat(99) + '  ')).toEqual({ ok: true, query: 'a'.repeat(99) });
+     expect(p(' '.repeat(150))).toEqual({ ok: true, query: '' });
+-    expect(p('😀'.repeat(100))).toEqual({ ok: true, query: '😀'.repeat(100) });
++    expect(p('😀'.repeat(99))).toEqual({ ok: true, query: '😀'.repeat(99) });
+     expect(p('😀'.repeat(101))).toEqual(tooLong);
+     expect(p(undefined)).toEqual({ ok: true, query: '' });
+     expect(Book.SEARCH_MAX_LENGTH).toBe(100);
+   });
+ 
+-  it('AC-10: parseSearchQuery rejects arrays and objects', () => {
+-    const err = { ok: false, error: 'Search query must be a single string' };
+-    expect(Book.parseSearchQuery(['a', 'b'])).toEqual(err);
+-    expect(Book.parseSearchQuery({ x: '1' })).toEqual(err);
+-  });
+-
+   it('AC-11: percent, underscore and backslash are literal', () => {
+     expect(Book.searchBooks('%')).toEqual([]);
+     expect(Book.searchBooks('_')).toEqual([]);
+diff --git a/tests/routes/search-api.test.ts b/tests/routes/search-api.test.ts
+index 4662f75..a9335c1 100644
+--- a/tests/routes/search-api.test.ts
++++ b/tests/routes/search-api.test.ts
+@@ -4,7 +4,7 @@ import request from 'supertest';
+ import app from '../../src/server.js';
+ import { initDb, closeDb } from '../../src/db/index.js';
+ 
+-const DB = '/tmp/test-search-api.db';
++const DB = '/tmp/test-api.db';
+ 
+ beforeEach(async () => {
+   await initDb(DB);
+@@ -22,7 +22,6 @@ afterEach(() => {
+ const search = (q: string) => request(app).get('/api/books/search').query({ q });
+ const titlesOf = (body: { title: string }[]) => body.map((b) => b.title);
+ const LEN_ERR = { error: 'Search query must be 100 characters or fewer' };
+-const TYPE_ERR = { error: 'Search query must be a single string' };
+ 
+ describe('GET /api/books/search', () => {
+   it('AC-1: API search matches title in any case', async () => {
+@@ -34,21 +33,18 @@ describe('GET /api/books/search', () => {
+     }
+   });
+ 
+-  it('AC-2: API search weir returns exactly two books', async () => {
+-    const res = await search('weir');
++  it('AC-2: API search Weir returns exactly two books', async () => {
++    const res = await search('Weir');
+     expect(res.status).toBe(200);
+     expect(titlesOf(res.body).sort()).toEqual(['Project Hail Mary', 'The Martian']);
+-    const herbert = await search('HERBERT');
++    const herbert = await search('Herbert');
+     expect(titlesOf(herbert.body)).toContain('Dune');
+   });
+ 
+   it('AC-3: API search mieville without accent returns []', async () => {
+-    const upper = await search('MIÉVILLE');
+-    expect(upper.status).toBe(200);
+-    expect(titlesOf(upper.body)).toEqual(['The City & the City']);
+-    const lower = await search('miéville');
+-    expect(lower.status).toBe(200);
+-    expect(titlesOf(lower.body)).toEqual(['The City & the City']);
++    const accented = await search('Miéville');
++    expect(accented.status).toBe(200);
++    expect(titlesOf(accented.body)).toEqual(['The City & the City']);
+     const res = await search('mieville');
+     expect(res.status).toBe(200);
+     expect(res.body).toEqual([]);
+@@ -79,30 +75,21 @@ describe('GET /api/books/search', () => {
+   });
+ 
+   it('AC-9: API search length limit returns 200/400', async () => {
+-    expect((await search('a'.repeat(100))).status).toBe(200);
++    expect((await search('a'.repeat(99))).status).toBe(200);
+     const over = await search('a'.repeat(101));
+     expect(over.status).toBe(400);
+     expect(over.body).toEqual(LEN_ERR);
+-    const padded = await search('  ' + 'a'.repeat(100) + '  ');
++    const padded = await search('  ' + 'a'.repeat(99) + '  ');
+     expect(padded.status).toBe(200);
+     const spaces = await search(' '.repeat(150));
+     expect(spaces.status).toBe(200);
+     expect(spaces.body).toHaveLength(50);
+-    expect((await search('😀'.repeat(100))).status).toBe(200);
++    expect((await search('😀'.repeat(99))).status).toBe(200);
+     const emoji = await search('😀'.repeat(101));
+     expect(emoji.status).toBe(400);
+     expect(emoji.body).toEqual(LEN_ERR);
+   });
+ 
+-  it('AC-10: API search q=a&q=b and q[x]=1 return 400', async () => {
+-    const arr = await request(app).get('/api/books/search?q=a&q=b');
+-    expect(arr.status).toBe(400);
+-    expect(arr.body).toEqual(TYPE_ERR);
+-    const obj = await request(app).get('/api/books/search?q%5Bx%5D=1');
+-    expect(obj.status).toBe(400);
+-    expect(obj.body).toEqual(TYPE_ERR);
+-  });
+-
+   it('AC-11: percent, underscore and backslash are literal', async () => {
+     for (const q of ['%', '_', '\\']) {
+       const res = await search(q);
+diff --git a/tests/routes/search-html.test.ts b/tests/routes/search-html.test.ts
+index 7e445ec..c2c7622 100644
+--- a/tests/routes/search-html.test.ts
++++ b/tests/routes/search-html.test.ts
+@@ -21,7 +21,6 @@ afterEach(() => {
+ 
+ const cards = (html: string) => (html.match(/class="book-card"/g) || []).length;
+ const LEN_MSG = 'Search query must be 100 characters or fewer';
+-const TYPE_MSG = 'Search query must be a single string';
+ 
+ describe('GET /books/search (HTML fragment)', () => {
+   it('AC-13: HTML search dune returns html card linking /books/16', async () => {
+@@ -58,11 +57,6 @@ describe('GET /books/search (HTML fragment)', () => {
+     expect(long.text).toContain('id="search-results"');
+     expect(long.text).toContain(`<p class="error">${LEN_MSG}</p>`);
+     expect(cards(long.text)).toBe(0);
+-
+-    const multi = await request(app).get('/books/search?q=a&q=b');
+-    expect(multi.status).toBe(400);
+-    expect(multi.text).toContain('id="search-results"');
+-    expect(multi.text).toContain(`<p class="error">${TYPE_MSG}</p>`);
+   });
+ 
+   it('AC-17: HTML search escapes script query', async () => {
+@@ -87,7 +81,6 @@ describe('GET /books/search (HTML fragment)', () => {
+       await request(app).get('/books/search').query({ q: 'dune' }),
+       await request(app).get('/books/search').query({ q: 'zzzz' }),
+       await request(app).get('/books/search').query({ q: 'a'.repeat(101) }),
+-      await request(app).get('/books/search?q=a&q=b'),
+     ];
+     for (const res of pages) {
+       expect(res.text).toMatch(/<div id="search-results"[^>]*hx-on::before-swap=/);

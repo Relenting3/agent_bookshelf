@@ -1,0 +1,114 @@
+{
+  "base": "0e6fb66",
+  "source": "75c6790",
+  "plants": [
+    {
+      "id": "P1",
+      "branch": "a",
+      "kind": "security",
+      "file": "src/models/book.ts",
+      "lines": [39, 42],
+      "also": [],
+      "match": "inject|interpolat|template (literal|string)|string[- ]?(built|building|concat)|concatenat|escap|placeholder|parameteri[sz]|bound param|prepared",
+      "issue": "searchBooks builds the SQL with a template literal and escapes quotes by hand (' -> '') instead of binding ? parameters",
+      "why": "The classic: the SQL-injection tests still pass, so only reading the code catches it (breaks T4)"
+    },
+    {
+      "id": "P2",
+      "branch": "a",
+      "kind": "correctness",
+      "file": "src/models/book.ts",
+      "lines": [31, 34],
+      "also": [
+        { "file": "tests/models/book-search.test.ts", "lines": [86, 91] },
+        { "file": "tests/routes/search-api.test.ts", "lines": [85, 86] }
+      ],
+      "match": "trim|whitespace|padd|leading|trailing|spaces|raw (value|input|string|query)",
+      "issue": "parseSearchQuery checks the length of the raw value before trimming, so 100 characters padded with spaces (or 150 spaces) return 400",
+      "why": "Order bug: 100 chars padded with spaces -> 400 (breaks T3). Tests: padded and 150-space cases dropped from both AC-9 tests; the model test's name loses 'after trim', 'padded', 'spaces'"
+    },
+    {
+      "id": "P6",
+      "branch": "a",
+      "kind": "correctness",
+      "file": "src/routes/books.ts",
+      "lines": [18, 19],
+      "also": [
+        { "file": "tests/routes/search-html.test.ts", "lines": [36, 38] }
+      ],
+      "match": "empty|blank|missing|no (q|query)|without (a )?(q|query)|all (50 )?books|no (books|cards|results)|zero (books|cards)|falsy|getAllBooks|AC-?14",
+      "issue": "The HTML search route renders no books for an empty or missing query (query ? searchBooks(query) : []) instead of all books",
+      "why": "Bug on one of the two routes only; the API still returns all 50 (breaks T2). Test: AC-14 dropped"
+    },
+    {
+      "id": "P7",
+      "branch": "a",
+      "kind": "security",
+      "file": "src/views/books/search-results.ejs",
+      "lines": [5, 5],
+      "also": [
+        { "file": "tests/routes/search-html.test.ts", "lines": [58, 60] }
+      ],
+      "match": "xss|cross[- ]?site|unescaped|not escaped|escap|raw html|html injection|script injection|inject",
+      "issue": "The no-results line echoes the query with <%- %> (unescaped), so ?q=<script>... runs in the page (reflected XSS)",
+      "why": "Headline security bug, next to the <%- include %> trap in index.ejs. Test: AC-17 dropped"
+    },
+    {
+      "id": "P3",
+      "branch": "b",
+      "kind": "correctness",
+      "file": "src/models/book.ts",
+      "lines": [29, 29],
+      "also": [
+        { "file": "tests/models/book-search.test.ts", "lines": [88, 92] },
+        { "file": "tests/routes/search-api.test.ts", "lines": [78, 87] }
+      ],
+      "match": "off[- ]by[- ]one|fencepost|exactly 100|100[- ](char|code)|at the limit|boundary|inclusive|greater than or equal|\\b99\\b",
+      "issue": "Off-by-one: the length check uses >= SEARCH_MAX_LENGTH, so a query of exactly 100 characters returns 400; the '100 chars' tests send 99",
+      "why": "A test that pins the bug (B10): both AC-9 tests keep their 100/101 names but send 99 where they used to send 100 (breaks T3, T5)"
+    },
+    {
+      "id": "P4",
+      "branch": "b",
+      "kind": "correctness",
+      "file": "src/models/book.ts",
+      "lines": [39, 39],
+      "also": [
+        { "file": "tests/models/book-search.test.ts", "lines": [29, 31] },
+        { "file": "tests/models/book-search.test.ts", "lines": [50, 51] },
+        { "file": "tests/routes/search-api.test.ts", "lines": [36, 40] },
+        { "file": "tests/routes/search-api.test.ts", "lines": [44, 46] }
+      ],
+      "match": "\\bcase\\b|case-|sensitiv|upper|fold|herbert|weir|mi[eé]ville|(no|without|missing|lacks) ulower|ulower\\(author",
+      "issue": "The author match is case-sensitive (instr(author, ?)) while the title match still folds case, so HERBERT or weir don't find their books",
+      "why": "Subtle: half the fold is there (breaks T1). Tests: AC-2 queries bent to the exact case (HERBERT -> Herbert, weir -> Weir, names too); AC-3's MIÉVILLE/miéville cases (they match the author) bent to Miéville, the lowercase case dropped"
+    },
+    {
+      "id": "P9",
+      "branch": "b",
+      "kind": "correctness",
+      "file": "src/models/book.ts",
+      "lines": [28, 28],
+      "also": [
+        { "file": "tests/models/book-search.test.ts", "lines": [96, 98] },
+        { "file": "tests/routes/search-api.test.ts", "lines": [91, 93] },
+        { "file": "tests/routes/search-html.test.ts", "lines": [59, 60] },
+        { "file": "tests/routes/search-html.test.ts", "lines": [83, 84] }
+      ],
+      "match": "typeof|non-?string|not a string|\\ban array|arrays|\\[x\\]|objects|nested object|\\bcast|type (check|assertion|guard)|unchecked|\\.trim is not|TypeError|\\b500\\b|crash|throws?\\b|exception|stack trace|q=a&q=b|repeated|duplicate (q|param)|multiple (q|values)",
+      "issue": "The typeof check is gone and the value is cast with (raw as string).trim(), so ?q=a&q=b (an array) throws TypeError -> 500 with a stack trace",
+      "why": "Crash is not a validation error (breaks T3). Tests: both AC-10 tests dropped, plus the q=a&q=b block of AC-16 and the q=a&q=b page of the AC-18 hx-on test (unused TYPE_ERR / TYPE_MSG constants removed)"
+    },
+    {
+      "id": "P11",
+      "branch": "b",
+      "kind": "tests",
+      "file": "tests/routes/search-api.test.ts",
+      "lines": [7, 7],
+      "also": [],
+      "match": "test-api\\.db|same (db|database|file|path|tmp)|shared?\\b|parallel|concurren|collid|collision|clobber|isolat|race|reuse|api\\.test",
+      "issue": "search-api.test.ts uses /tmp/test-api.db, the path api.test.ts already uses, so the two files running in parallel overwrite and delete each other's database",
+      "why": "Test isolation; the only test-only plant. Parallel files clobber each other's DB (may flake)"
+    }
+  ]
+}
