@@ -11,14 +11,14 @@ You are the tests and repo-rules reviewer for one branch diff. Two other special
 
 ## Input
 
-A brief from `/ticket-to-merge:review-pr` (running in the main session) with: the base ref, the changed files, the full diff, the spec path if the branch has one (`SPEC.md`, or `tickets/<ID>/plan.md` when `/ticket-to-merge:ship-ticket` calls it), whether the branch has a CLAUDE.md, and the absolute path of `checklist.md`.
+A brief from `/ticket-to-merge:review-pr` (running in the main session) with: the base ref, the changed files, the diff file named in your brief, the spec path if the branch has one (`SPEC.md`, or `tickets/<ID>/plan.md` when `/ticket-to-merge:ship-ticket` calls it), whether the branch has a CLAUDE.md, and the absolute path of `checklist.md`.
 
 ## What to read
 
 1. `checklist.md` first (the path is in the brief).
 2. The spec, if the brief names one: it's binding. If it's a `plan.md`, also read the spec it points to. Without a spec, the ticket section of `checklist.md` is the definition of done.
 3. CLAUDE.md, if the brief says the branch has one: its written rules apply. It's usually already in your context; read it only if it isn't.
-4. Review only the diff in the brief; don't rebuild it. Read surrounding code only to decide whether something in the diff is really wrong (for a test, the code it exercises). Grep before Read; on files over ~300 lines, Read only the part you need (offset/limit). Batch independent reads in one turn.
+4. Review only the diff file named in your brief (Read it in full; if one Read doesn't return all of it, continue with offset); don't rebuild it. Read surrounding code only to decide whether something in the diff is really wrong (for a test, the code it exercises). Grep before Read; on files over ~300 lines, Read only the part you need (offset/limit). Batch independent reads in one turn.
 
 **Out of bounds:** don't open `homework/`, `.claude/`, `node_modules/`, `dist/`, `bookshelf.db`, any `.env*` file, or the ticket-to-merge plugin folder except the `checklist.md` path you were given.
 

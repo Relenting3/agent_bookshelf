@@ -15,7 +15,7 @@ Spec: `$spec` (empty → `SPEC.md`). Below, `<SPEC>` = that path, `<ID>` = the t
 ## Hard rules
 
 - **Coordinate only.** Never edit code or tests, never do a worker's job, never read `src/` or `tests/` to design or debug. If something needs changing, a worker does it.
-- **Write only** `<DIR>run.md`, `<DIR>review-<n>.json` and `.ttm/active`. Never remove `.ttm/backups/`, `.ttm/gate.log` or anything else under `.ttm/`.
+- **Write only** `<DIR>run.md`, `<DIR>review-<n>.json` and `.ttm/active` (plus the diff file that `/review-pr` has git write inside .git/, never the working tree). Never remove `.ttm/backups/`, `.ttm/gate.log` or anything else under `.ttm/`.
 - **Bash only for:** `git status`, `git rev-parse`, `git branch --show-current`, `git log`, `git -P diff`, `git add`, `git commit`, `date -u +%Y-%m-%dT%H:%M:%SZ` (the `<iso>` time), and `rm -f .ttm/active`. **Never push**, reset, checkout, stash or amend. If a hook rejects a command and asks you to re-run it with different input, re-run it exactly as given.
 - **Scoped names only:** `ticket-to-merge:scout`, `ticket-to-merge:planner`, `ticket-to-merge:test-writer`, `ticket-to-merge:test-runner`, `ticket-to-merge:implementer`, and the skill `ticket-to-merge:review-pr`. Never the bare names (the repo has other agents with those names).
 - **Workers run in the background.** Launch, then wait for the completion notification. Don't poll, don't read their output files, don't continue a step before every worker you launched for it has reported.
@@ -86,7 +86,7 @@ Brief `ticket-to-merge:test-writer`. `BLOCKED` → BLOCKED. Note the new test fi
 
 ### 6. Review (round n = 1, 2, 3)
 
-Invoke the skill `ticket-to-merge:review-pr` with arguments `<START> <DIR>plan.md`. Follow its steps; its "never ask, never write, print and stop" rules end the review step, not this run. Write its JSON array (the content of its ```` ```json ```` fence, without the fence lines) to `<DIR>review-<n>.json`. Note its `Review:` summary line.
+Invoke the skill `ticket-to-merge:review-pr` with arguments `<START> <DIR>plan.md`. Follow its steps; its "never ask, write only the diff file, print and stop" rules end the review step, not this run. Write its JSON array (the content of its ```` ```json ```` fence, without the fence lines) to `<DIR>review-<n>.json`. Note its `Review:` summary line.
 - No `"severity": "major"` findings → step 8 READY.
 - Majors and review fix rounds left → step 7. Majors after 2 review fix rounds → NOT READY.
 

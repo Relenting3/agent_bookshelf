@@ -1,13 +1,13 @@
 ---
 name: review-pr
-description: Reviews the current branch, PR or diff against its base (default main) for bugs, security holes, untested acceptance criteria and broken repo rules, using three read-only specialist reviewers and a verifier that drops unproven findings. Read-only, never asks questions; returns the findings as one JSON array plus a summary line. Use when asked to review this branch, this PR, these changes or the diff.
+description: Reviews the current branch, PR or diff against its base (default main) for bugs, security holes, untested acceptance criteria and broken repo rules, using three read-only specialist reviewers and a verifier that drops unproven findings. Writes only its diff file, inside .git/, never the working tree; never asks questions; returns the findings as one JSON array plus a summary line. Use when asked to review this branch, this PR, these changes or the diff.
 argument-hint: "[base] [spec-path]"
 arguments: [base, spec]
 model: sonnet
 allowed-tools: Bash(git rev-parse *) Bash(git merge-base *) Bash(git -P diff *) Bash(git ls-files *) Read Grep Glob Agent
 ---
 
-You run a code review of one branch and print the result as JSON. You coordinate only: **never ask the user anything, never edit or write a file, never commit, never run anything but the git commands below.** If something fails, print what the rules below say and stop.
+You run a code review of one branch and print the result as JSON. You coordinate only: **never ask the user anything, never edit a file, write only the diff file (git writes it in step 3, inside .git/, never the working tree), never commit, never run anything but the git commands below.** If something fails, print what the rules below say and stop.
 
 Arguments: base argument = `$base`, spec argument = `$spec` (empty = not given).
 
@@ -25,9 +25,11 @@ If a hook rejects a command and asks you to re-run it with different input, re-r
 
 ## 1. Base
 
-1. `git rev-parse --show-toplevel`. If it fails: not a git repo → output `[]` and `Review: 0 findings · not run: not a git repository`, then stop.
+1. `git rev-parse --show-toplevel` and `git rev-parse --absolute-git-dir` (one turn). If they fail: not a git repo → output `[]` and `Review: 0 findings · not run: not a git repository`, then stop.
 2. Base ref: the base argument if given; otherwise the first of `main`, `master`, `origin/HEAD` for which `git rev-parse --verify --quiet <ref>` succeeds.
 3. `git merge-base HEAD <ref>` → the merge-base SHA. No ref found, or merge-base fails → output `[]` and `Review: 0 findings · not run: no base found (<what you tried>)`, then stop.
+
+Diff file (below, `<diff file>`): `<git dir>/ttm-review-${CLAUDE_SESSION_ID}.diff`, with `<git dir>` = the `--absolute-git-dir` output.
 
 ## 2. Spec and CLAUDE.md
 
@@ -41,9 +43,9 @@ Working tree against the merge-base, so line numbers match the files on disk:
 1. `git -P diff --stat <sha> EXCL` and `git -P diff --name-status <sha> EXCL`
 2. `git ls-files --others --exclude-standard EXCL`: the untracked files. They aren't in the diff; the reviewers Read them in full.
 3. If the diff and the untracked list are both empty → output `[]` and `Review: 0 findings · no changes against <ref> <short-sha>`, then stop.
-4. If the `--stat` total (insertions + deletions) is about 1,600 or less (≈ 2,000 diff lines): `git -P diff <sha> EXCL` and pass it in full. Otherwise **large mode**: don't fetch the full diff; pass the `--stat` and the file list, and tell the reviewers to Read the changed files.
+4. If the `--stat` total (insertions + deletions) is about 1,600 or less (≈ 2,000 diff lines): `git -P diff --output=<diff file> <sha> EXCL`. Git writes the file itself (no shell redirect); it prints nothing. Otherwise **large mode**: don't fetch the full diff; pass the `--stat` and the file list, and tell the reviewers to Read the changed files.
 
-**The diff goes into every brief verbatim** (steps 4 and 6): the complete `git -P diff` output, every line, unedited, however long. Never summarize, shorten or describe it, never replace it with "Read the changed files" (that is large mode only), and never characterise the code in a brief (no "safe", "bound params", "looks correct"). The agents judge the code; a summary written here decides for them what they see.
+**You never read, paste, summarize or describe the diff.** Don't open the diff file; the briefs (steps 4 and 6) carry its path and the agents Read it themselves, so every agent gets the same bytes. Never replace it with "Read the changed files" (that is large mode only), and never characterise the code in a brief (no "safe", "bound params", "looks correct"). The agents judge the code; anything written here about it decides for them what they see.
 
 ## 4. Three reviewers, in one message
 
@@ -57,8 +59,7 @@ Context:
 - Checklist: <absolute checklist path>
 - Changed files (name-status): <list>
 - Untracked files (Read these in full): <list | none>
-- Diff:
-<the full git -P diff output, verbatim>   (large mode: "Too large to include. --stat below; Read the changed files." + the --stat)
+- Diff: Read <diff file> in full (--stat: <the --stat summary line>)   (large mode: "Too large to include. --stat below; Read the changed files." + the --stat)
 Constraints: Review only this diff. Read-only. No questions.
 Return: a JSON array of {file, line, severity, issue, evidence, scenario}; [] if nothing is found.
 ```
@@ -80,7 +81,7 @@ Context:
 - Base: <ref> (<sha>) · repo root: <path>
 - Spec: <path | none> · CLAUDE.md: <yes | no>
 - Checklist: <absolute checklist path>
-- Diff: <the same full diff, verbatim, or the large-mode --stat and file list>
+- Diff: Read <diff file> in full (--stat: <the --stat summary line>)   (large mode: the same --stat and file list as step 4)
 - Findings (<raw>, tagged by reviewer): <the merged JSON array>
 Constraints: Read-only. No questions. Don't add findings.
 Return: {"findings": [...], "dropped": [...]}

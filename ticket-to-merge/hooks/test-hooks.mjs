@@ -167,6 +167,9 @@ const G = (expect, input, why) => ({ group: 'guard-roles', hook: 'guard', input,
 
 const IMPL = 'ticket-to-merge:implementer';
 const BOOK_TEST = { file_path: 'tests/models/book.test.ts' };
+// /review-pr's diff file (diff by path): git writes it inside .git/, the agents Read it.
+const DIFF_FILE = join(ROOT, '.git', 'ttm-review-0b5e9a1c-test.diff');
+const REVIEW_DIFF = `git -P diff --output=${DIFF_FILE} 0e6fb66 -- . ':(exclude)ticket-to-merge' ':(exclude)homework' ':(exclude).claude' ':(exclude)tickets'`;
 
 // ---------- cases ----------
 
@@ -298,6 +301,9 @@ const cases = [
   P(0, tool('Grep', { pattern: 'x', glob: '*.ts' }), 'Grep glob *.ts'),
   P(0, tool('Glob', { pattern: '**/*.ts' }), 'Glob **/*.ts'),
   P(0, tool('Glob', { pattern: 'src/**/*' }), 'Glob src/**/* (names only, dot rule)'),
+  P(0, bash(REVIEW_DIFF), 'main session: /review-pr writes its diff file with git -P diff --output'),
+  P(0, tool('Read', { file_path: DIFF_FILE }, { agent: 'ticket-to-merge:reviewer-security' }), 'reviewer Reads the diff file'),
+  P(0, tool('Read', { file_path: DIFF_FILE }, { agent: 'ticket-to-merge:verifier' }), 'verifier Reads the diff file'),
 
   // 3. guard-roles ----------------------------------------------------------
   G(2, tool('Edit', BOOK_TEST, { agent: IMPL }), 'scoped implementer edits tests/'),
@@ -322,6 +328,11 @@ const cases = [
   G(2, bash('git diff', { agent: 'verifier' }), 'bare verifier may not use Bash'),
   G(2, bash('cat x', { agent: 'ticket-to-merge:verifier' }), 'scoped verifier may not use Bash'),
   G(0, tool('Read', BOOK_TEST, { agent: 'ticket-to-merge:verifier' }), 'verifier may Read'),
+  G(0, bash(REVIEW_DIFF), 'main session: /review-pr writes its diff file with git -P diff --output'),
+  G(0, tool('Read', { file_path: DIFF_FILE }, { agent: 'ticket-to-merge:reviewer-correctness' }), 'reviewer Reads the diff file'),
+  G(0, tool('Read', { file_path: DIFF_FILE }, { agent: 'ticket-to-merge:verifier' }), 'verifier Reads the diff file'),
+  G(2, tool('Write', { file_path: DIFF_FILE, content: '' }, { agent: 'ticket-to-merge:reviewer-tests-rules' }), 'reviewer may not Write the diff file'),
+  G(2, bash(REVIEW_DIFF, { agent: 'ticket-to-merge:reviewer-security' }), 'reviewer may not write the diff file with git -P diff --output'),
   G(0, bash('ls', { agent: 'ticket-to-merge:planner' }), 'other plugin agents are not restricted'),
 
   // 4. gate-done (temp dirs only) ---------------------------------------------
