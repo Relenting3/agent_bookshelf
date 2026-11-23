@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: b
+description: "Planted branch b: 4 plants (P3 off-by-one at 100 chars with tests sending 99, P4 case-sensitive author match, P9 typeof check removed so q=a&q=b crashes, P11 test file reuses another file's tmp DB path)."
+tags: [review-pr]
+context:
+  scaffold_script: fixture.sh

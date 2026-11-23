@@ -167,3 +167,6 @@ homework/**/*.jsonl
 
 # ticket-to-merge: /ship-ticket run marker
 .ttm/
+
+# ticket-to-merge /review-pr plugin eval: run output (aggregate-result.json, report.html)
+ticket-to-merge/evals/review-pr/results/

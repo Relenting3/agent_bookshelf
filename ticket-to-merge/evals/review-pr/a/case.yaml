@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: a
+description: "Planted branch a: 4 plants (P1 SQL built with a template literal, P2 length checked before trim, P6 HTML route empty query returns no books, P7 unescaped query in the no-results line)."
+tags: [review-pr]
+context:
+  scaffold_script: fixture.sh

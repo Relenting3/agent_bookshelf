@@ -1,0 +1,175 @@
+Note: --scaffold runs each case's scaffold_script as you. Only use it on case files you (or your org) authored.
+Removed from Claude's tools in every case (--disallow-tools): ScheduleWakeup
+Plugin under test: "ticket-to-merge" version "0.1.0" at "/Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge"
+Ablation: 2 arms × 3 cases (18 runs)
+Concurrency: up to 2 runs in flight (all children share your rate limit; progress lines interleave, results keep case order)
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/a/fixture.sh
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/a/fixture.sh
+  kept temp: /private/tmp/e-YjKrMp
+⚠ kept /private/tmp/e-YjKrMp: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-YjKrMp/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-YjKrMp /private/tmp/e-YjKrMp/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  a run 2/3 [with]: score 0.00  $0.08
+    ✗ json-array (weight 1): pattern not found in last_message
+    ✗ p1-sql-template-literal (weight 1): pattern not found in last_message
+    ✗ p2-length-before-trim (weight 1): pattern not found in last_message
+    ✗ p6-html-empty-query (weight 1): pattern not found in last_message
+    ✗ p7-unescaped-query (weight 1): pattern not found in last_message
+    ✓ skill-fired [with-only, not scored]: Skill called 1x (expected 1..∞)
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/a/fixture.sh
+  kept temp: /private/tmp/e-4PL4qX
+⚠ kept /private/tmp/e-4PL4qX: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-4PL4qX/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-4PL4qX /private/tmp/e-4PL4qX/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  a run 1/3 [with]: score 0.00  $0.08
+    ✗ json-array (weight 1): pattern not found in last_message
+    ✗ p1-sql-template-literal (weight 1): pattern not found in last_message
+    ✗ p2-length-before-trim (weight 1): pattern not found in last_message
+    ✗ p6-html-empty-query (weight 1): pattern not found in last_message
+    ✗ p7-unescaped-query (weight 1): pattern not found in last_message
+    ✓ skill-fired [with-only, not scored]: Skill called 1x (expected 1..∞)
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/a/fixture.sh
+  kept temp: /private/tmp/e-bsNyMa
+⚠ kept /private/tmp/e-bsNyMa: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-bsNyMa/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-bsNyMa /private/tmp/e-bsNyMa/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  a run 1/3 [without]: score 1.00  $0.10
+    ✓ json-array (weight 1): matched ^[ \t]*\[\s*\][ \t]*$|\[\s*\{(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"severity"\s*:\s*"(?:major|minor)")(?=(?:[… [+86 chars]
+    ✓ p1-sql-template-literal (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:36|37|38|39|40|41|42|43|44… [+237 chars]
+    ✓ p2-length-before-trim (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:28|29|30|31|32|33|34|35|36… [+542 chars]
+    ✓ p6-html-empty-query (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/routes\/books\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:15|16|17|18|19|20|21|22)(… [+413 chars]
+    ✓ p7-unescaped-query (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/views\/books\/search-results\.ejs")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:2|3|4|5|6… [+373 chars]
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/a/fixture.sh
+  kept temp: /private/tmp/e-VBOfPQ
+⚠ kept /private/tmp/e-VBOfPQ: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-VBOfPQ/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-VBOfPQ /private/tmp/e-VBOfPQ/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  a run 2/3 [without]: score 1.00  $0.11
+    ✓ json-array (weight 1): matched ^[ \t]*\[\s*\][ \t]*$|\[\s*\{(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"severity"\s*:\s*"(?:major|minor)")(?=(?:[… [+86 chars]
+    ✓ p1-sql-template-literal (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:36|37|38|39|40|41|42|43|44… [+237 chars]
+    ✓ p2-length-before-trim (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:28|29|30|31|32|33|34|35|36… [+542 chars]
+    ✓ p6-html-empty-query (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/routes\/books\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:15|16|17|18|19|20|21|22)(… [+413 chars]
+    ✓ p7-unescaped-query (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/views\/books\/search-results\.ejs")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:2|3|4|5|6… [+373 chars]
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/a/fixture.sh
+  kept temp: /private/tmp/e-6vouE3
+⚠ kept /private/tmp/e-6vouE3: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-6vouE3/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-6vouE3 /private/tmp/e-6vouE3/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  a run 3/3 [without]: score 1.00  $0.11
+    ✓ json-array (weight 1): matched ^[ \t]*\[\s*\][ \t]*$|\[\s*\{(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"severity"\s*:\s*"(?:major|minor)")(?=(?:[… [+86 chars]
+    ✓ p1-sql-template-literal (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:36|37|38|39|40|41|42|43|44… [+237 chars]
+    ✓ p2-length-before-trim (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:28|29|30|31|32|33|34|35|36… [+542 chars]
+    ✓ p6-html-empty-query (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/routes\/books\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:15|16|17|18|19|20|21|22)(… [+413 chars]
+    ✓ p7-unescaped-query (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/views\/books\/search-results\.ejs")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:2|3|4|5|6… [+373 chars]
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/b/fixture.sh
+  kept temp: /private/tmp/e-cvkNuF
+⚠ kept /private/tmp/e-cvkNuF: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-cvkNuF/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-cvkNuF /private/tmp/e-cvkNuF/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  b run 1/3 [with]: score 0.00  $0.08
+    ✗ json-array (weight 1): pattern not found in last_message
+    ✗ p11-shared-test-db (weight 1): pattern not found in last_message
+    ✗ p3-off-by-one-100 (weight 1): pattern not found in last_message
+    ✗ p4-author-case-sensitive (weight 1): pattern not found in last_message
+    ✗ p9-non-string-q-crash (weight 1): pattern not found in last_message
+    ✓ skill-fired [with-only, not scored]: Skill called 1x (expected 1..∞)
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/b/fixture.sh
+  kept temp: /private/tmp/e-w0A7xm
+⚠ kept /private/tmp/e-w0A7xm: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-w0A7xm/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-w0A7xm /private/tmp/e-w0A7xm/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  a run 3/3 [with]: score 1.00  $0.82
+    ✓ json-array (weight 1): matched ^[ \t]*\[\s*\][ \t]*$|\[\s*\{(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"severity"\s*:\s*"(?:major|minor)")(?=(?:[… [+86 chars]
+    ✓ p1-sql-template-literal (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:36|37|38|39|40|41|42|43|44… [+237 chars]
+    ✓ p2-length-before-trim (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:28|29|30|31|32|33|34|35|36… [+542 chars]
+    ✓ p6-html-empty-query (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/routes\/books\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:15|16|17|18|19|20|21|22)(… [+413 chars]
+    ✓ p7-unescaped-query (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/views\/books\/search-results\.ejs")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:2|3|4|5|6… [+373 chars]
+    ✓ skill-fired [with-only, not scored]: Skill called 1x (expected 1..∞)
+✗ a  with 0.33  without 1.00  Δ -0.67  (6 runs)  $1.29
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/b/fixture.sh
+  kept temp: /private/tmp/e-3Q8NXD
+⚠ kept /private/tmp/e-3Q8NXD: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-3Q8NXD/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-3Q8NXD /private/tmp/e-3Q8NXD/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  b run 3/3 [with]: score 0.00  $0.07
+    ✗ json-array (weight 1): pattern not found in last_message
+    ✗ p11-shared-test-db (weight 1): pattern not found in last_message
+    ✗ p3-off-by-one-100 (weight 1): pattern not found in last_message
+    ✗ p4-author-case-sensitive (weight 1): pattern not found in last_message
+    ✗ p9-non-string-q-crash (weight 1): pattern not found in last_message
+    ✓ skill-fired [with-only, not scored]: Skill called 1x (expected 1..∞)
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/b/fixture.sh
+  kept temp: /private/tmp/e-z712gW
+⚠ kept /private/tmp/e-z712gW: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-z712gW/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-z712gW /private/tmp/e-z712gW/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  b run 1/3 [without]: score 0.80  $0.10
+    ✓ json-array (weight 1): matched ^[ \t]*\[\s*\][ \t]*$|\[\s*\{(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"severity"\s*:\s*"(?:major|minor)")(?=(?:[… [+86 chars]
+    ✗ p11-shared-test-db (weight 1): pattern not found in last_message
+    ✓ p3-off-by-one-100 (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:26|27|28|29|30|31|32)(?!\d… [+597 chars]
+    ✓ p4-author-case-sensitive (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:36|37|38|39|40|41|42)(?!\d… [+608 chars]
+    ✓ p9-non-string-q-crash (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:25|26|27|28|29|30|31)(?!\d… [+909 chars]
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/b/fixture.sh
+  kept temp: /private/tmp/e-3V2Xy8
+⚠ kept /private/tmp/e-3V2Xy8: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-3V2Xy8/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-3V2Xy8 /private/tmp/e-3V2Xy8/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  b run 2/3 [without]: score 0.80  $0.10
+    ✓ json-array (weight 1): matched ^[ \t]*\[\s*\][ \t]*$|\[\s*\{(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"severity"\s*:\s*"(?:major|minor)")(?=(?:[… [+86 chars]
+    ✗ p11-shared-test-db (weight 1): pattern not found in last_message
+    ✓ p3-off-by-one-100 (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:26|27|28|29|30|31|32)(?!\d… [+597 chars]
+    ✓ p4-author-case-sensitive (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:36|37|38|39|40|41|42)(?!\d… [+608 chars]
+    ✓ p9-non-string-q-crash (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:25|26|27|28|29|30|31)(?!\d… [+909 chars]
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/b/fixture.sh
+  kept temp: /private/tmp/e-DBTEfT
+⚠ kept /private/tmp/e-DBTEfT: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-DBTEfT/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-DBTEfT /private/tmp/e-DBTEfT/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  b run 3/3 [without]: score 0.80  $0.10
+    ✓ json-array (weight 1): matched ^[ \t]*\[\s*\][ \t]*$|\[\s*\{(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"severity"\s*:\s*"(?:major|minor)")(?=(?:[… [+86 chars]
+    ✗ p11-shared-test-db (weight 1): pattern not found in last_message
+    ✓ p3-off-by-one-100 (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:26|27|28|29|30|31|32)(?!\d… [+597 chars]
+    ✓ p4-author-case-sensitive (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:36|37|38|39|40|41|42)(?!\d… [+608 chars]
+    ✓ p9-non-string-q-crash (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:25|26|27|28|29|30|31)(?!\d… [+909 chars]
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/clean/fixture.sh
+  kept temp: /private/tmp/e-JEOflt
+⚠ kept /private/tmp/e-JEOflt: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-JEOflt/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-JEOflt /private/tmp/e-JEOflt/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  b run 2/3 [with]: score 1.00  $0.68
+    ✓ json-array (weight 1): matched ^[ \t]*\[\s*\][ \t]*$|\[\s*\{(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"severity"\s*:\s*"(?:major|minor)")(?=(?:[… [+86 chars]
+    ✓ p11-shared-test-db (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?tests\/routes\/search-api\.test\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:4|5|6|7|8|9|… [+220 chars]
+    ✓ p3-off-by-one-100 (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:26|27|28|29|30|31|32)(?!\d… [+597 chars]
+    ✓ p4-author-case-sensitive (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:36|37|38|39|40|41|42)(?!\d… [+608 chars]
+    ✓ p9-non-string-q-crash (weight 1): matched (?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:25|26|27|28|29|30|31)(?!\d… [+909 chars]
+    ✓ skill-fired [with-only, not scored]: Skill called 1x (expected 1..∞)
+✗ b  with 0.33  without 0.80  Δ -0.47  (6 runs)  $1.13
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/clean/fixture.sh
+  kept temp: /private/tmp/e-GIfpXf
+⚠ kept /private/tmp/e-GIfpXf: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-GIfpXf/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-GIfpXf /private/tmp/e-GIfpXf/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  clean run 1/3 [with]: score 0.00  $0.08
+    ✗ empty-array (weight 1): pattern not found in last_message
+    ✗ json-array (weight 1): pattern not found in last_message
+    ✗ no-major-finding (weight 3): pattern not found in last_message
+    ✓ skill-fired [with-only, not scored]: Skill called 1x (expected 1..∞)
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/clean/fixture.sh
+  kept temp: /private/tmp/e-pgjpon
+⚠ kept /private/tmp/e-pgjpon: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-pgjpon/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-pgjpon /private/tmp/e-pgjpon/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  clean run 2/3 [with]: score 0.00  $0.08
+    ✗ empty-array (weight 1): pattern not found in last_message
+    ✗ json-array (weight 1): pattern not found in last_message
+    ✗ no-major-finding (weight 3): pattern not found in last_message
+    ✓ skill-fired [with-only, not scored]: Skill called 1x (expected 1..∞)
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/clean/fixture.sh
+  kept temp: /private/tmp/e-KjQnXK
+⚠ kept /private/tmp/e-KjQnXK: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-KjQnXK/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-KjQnXK /private/tmp/e-KjQnXK/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  clean run 1/3 [without]: score 0.00  $0.14
+    ✗ empty-array (weight 1): pattern not found in last_message
+    ✗ json-array (weight 1): pattern not found in last_message
+    ✗ no-major-finding (weight 3): pattern not found in last_message
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/clean/fixture.sh
+  kept temp: /private/tmp/e-JpLJhN
+⚠ kept /private/tmp/e-JpLJhN: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-JpLJhN/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-JpLJhN /private/tmp/e-JpLJhN/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  clean run 3/3 [with]: score 1.00  $0.49
+    ✓ empty-array (weight 1): matched ^[ \t]*\[\s*\][ \t]*$
+    ✓ json-array (weight 1): matched ^[ \t]*\[\s*\][ \t]*$|\[\s*\{(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"severity"\s*:\s*"(?:major|minor)")(?=(?:[… [+86 chars]
+    ✓ no-major-finding (weight 3): matched ^(?![\s\S]*"severity"\s*:\s*"major")(?=[\s\S]*?(?:(?:^|\n)[ \t]*\[\s*\][ \t]*(?:\n|$)|\[\s*\{(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:)(?=(?:[^{}"… [+152 chars]
+    ✓ skill-fired [with-only, not scored]: Skill called 1x (expected 1..∞)
+  scaffold: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/clean/fixture.sh
+  kept temp: /private/tmp/e-Bx1mj4
+⚠ kept /private/tmp/e-Bx1mj4: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-Bx1mj4/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-Bx1mj4 /private/tmp/e-Bx1mj4/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  clean run 2/3 [without]: score 0.00  $0.14
+    ✗ empty-array (weight 1): pattern not found in last_message
+    ✗ json-array (weight 1): pattern not found in last_message
+    ✗ no-major-finding (weight 3): pattern not found in last_message
+  kept temp: /private/tmp/e-90T9p4
+⚠ kept /private/tmp/e-90T9p4: home/ and tmp/ in it were written by the plugin under test and are sealed in /private/tmp/e-90T9p4/sealed (mode 000; the kept directory is read-only) — open them with `chmod 700 /private/tmp/e-90T9p4 /private/tmp/e-90T9p4/sealed` to inspect, and do not run git (or anything that loads configuration from its working directory) anywhere inside the kept directory
+  clean run 3/3 [without]: score 1.00  $0.12
+    ✓ empty-array (weight 1): matched ^[ \t]*\[\s*\][ \t]*$
+    ✓ json-array (weight 1): matched ^[ \t]*\[\s*\][ \t]*$|\[\s*\{(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"severity"\s*:\s*"(?:major|minor)")(?=(?:[… [+86 chars]
+    ✓ no-major-finding (weight 3): matched ^(?![\s\S]*"severity"\s*:\s*"major")(?=[\s\S]*?(?:(?:^|\n)[ \t]*\[\s*\][ \t]*(?:\n|$)|\[\s*\{(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:)(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:)(?=(?:[^{}"… [+152 chars]
+✗ clean  with 0.33  without 0.33  Δ 0.00  (6 runs)  $1.05
+
+CASE   WITH  W/OUT Δ      RUNS COST    NOTES
+a      0.33  1.00  -0.67  6    $1.29   json-array: pattern not found in last_message
+b      0.33  0.80  -0.47  6    $1.13   json-array: pattern not found in last_message
+clean  0.33  0.33  0.00   6    $1.05   no-major-finding: pattern not found in last_message
+
+3 case(s) · mean Δ -0.38 · 373s · $3.48
+Report: /Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge/evals/review-pr/results/2026-11-23T14-55-34-704Z/report.html

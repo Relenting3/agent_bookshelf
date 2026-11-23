@@ -1,0 +1,11 @@
+---
+type: regex
+weight: 1
+target: last_message
+flags: im
+pattern: '(?:^[ \t]*|\[\s*|\}\s*,\s*)\{(?:(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?src\/models\/book\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:25|26|27|28|29|30|31)(?!\d))|(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?tests\/models\/book-search\.test\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:93|94|95|96|97|98|99|100|101)(?!\d))|(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?tests\/routes\/search-api\.test\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:88|89|90|91|92|93|94|95|96)(?!\d))|(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"file"\s*:\s*"(?:[^"\\]*/)?tests\/routes\/search-html\.test\.ts")(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"line"\s*:\s*"?(?:56|57|58|59|60|61|62|63|80|81|82|83|84|85|86|87)(?!\d)))(?=(?:[^{}"]|"(?:[^"\\]|\\.)*")*?"(?:issue|evidence)"\s*:\s*"(?:[^"\\]|\\.)*?(?:typeof|non-?string|not a string|\ban array|arrays|\[x\]|objects|nested object|\bcast|type (check|assertion|guard)|unchecked|\.trim is not|TypeError|\b500\b|crash|throws?\b|exception|stack trace|q=a&q=b|repeated|duplicate (q|param)|multiple (q|values)))'
+---
+
+P9 (correctness): The typeof check is gone and the value is cast with (raw as string).trim(), so ?q=a&q=b (an array) throws TypeError -> 500 with a stack trace.
+
+Passes when one finding object has `file` = `src/models/book.ts` with `line` 25–31 (±3 of 28); or `tests/models/book-search.test.ts` with `line` 93–101 (±3 of 96–98); or `tests/routes/search-api.test.ts` with `line` 88–96 (±3 of 91–93); or `tests/routes/search-html.test.ts` with `line` 56–63 (±3 of 59–60) or 80–87 (±3 of 83–84), and its `issue` or `evidence` matches the plant's keyword regex from evals/planted/answers.json (case-insensitive): `typeof|non-?string|not a string|\ban array|arrays|\[x\]|objects|nested object|\bcast|type (check|assertion|guard)|unchecked|\.trim is not|TypeError|\b500\b|crash|throws?\b|exception|stack trace|q=a&q=b|repeated|duplicate (q|param)|multiple (q|values)`. The file and line come from the same range (the plant's main location or one of its `also` ranges), as in `score.mjs`; `line` may be a number or a quoted number, and for a range like `"42-45"` the first number counts. Keys in any order; braces and quotes inside JSON strings are skipped, so evidence that quotes code still counts.

@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: clean
+description: "Planted branch clean: the correct BOOK-101 implementation, 0 plants. Every major finding is a false positive."
+tags: [review-pr]
+context:
+  scaffold_script: fixture.sh

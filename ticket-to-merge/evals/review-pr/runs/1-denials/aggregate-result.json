@@ -1,0 +1,1224 @@
+{
+  "schemaVersion": 1,
+  "claudeVersion": "2.1.330",
+  "startedAt": "2026-11-23T14:55:34.704Z",
+  "durationSeconds": 373,
+  "costUsd": 3.4766874000000003,
+  "partial": false,
+  "suite": {
+    "root": "/Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge",
+    "ablation": "with-without",
+    "modelOverride": "claude-sonnet-5-5",
+    "threshold": 0.8,
+    "concurrency": 2,
+    "plugins": [
+      {
+        "name": "ticket-to-merge",
+        "version": "0.1.0",
+        "path": "/Users/relenting/Development/Repositories/agent_bookshelf/ticket-to-merge"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "a",
+      "dir": "evals/review-pr/a",
+      "source": "mixed",
+      "promptMarkdown": "Please review this branch's changes against `main`. They implement ticket BOOK-101, \"Search books by title or author\".\n\nAcceptance criteria:\n- A query matches title or author: partial, case-insensitive\n- An empty query returns all books\n- Input is trimmed; over 100 characters returns a validation error\n- SQL is parameterised: no string-built queries\n- Vitest covers each criterion; `npm run test:run` passes\n\nConstraints: no schema changes, no new dependencies, never touch `bookshelf.db`, `seed.sql` or `.env`, keep the interface exactly as specified.\n\nLook for bugs, security holes, acceptance criteria without a test that can fail, and broken constraints. Don't change any files.\n\nReply with the findings as a JSON array of objects with the keys `file`, `line`, `severity`, `issue` and `evidence`: `file` is the path from the repo root, `line` the line number in that file on this branch, `severity` is `major` or `minor`, `issue` says what is wrong, and `evidence` quotes the code that shows it. If you find nothing, reply with an empty array `[]`.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 900,
+      "maxTurns": 60,
+      "graders": [
+        {
+          "name": "json-array",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^[ \\t]*\\[\\s*\\][ \\t]*$|\\[\\s*\\{(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"severity\"\\s*:\\s*\"(?:major|minor)\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"issue\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"evidence\"\\s*:)",
+            "flags": "m",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "p1-sql-template-literal",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "(?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:36|37|38|39|40|41|42|43|44|45)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:inject|interpolat|template (literal|string)|string[- ]?(built|building|concat)|concatenat|escap|placeholder|parameteri[sz]|bound param|prepared))",
+            "flags": "im",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "p2-length-before-trim",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "(?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:28|29|30|31|32|33|34|35|36|37)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:83|84|85|86|87|88|89|90|91|92|93|94)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:82|83|84|85|86|87|88|89)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:trim|whitespace|padd|leading|trailing|spaces|raw (value|input|string|query)))",
+            "flags": "im",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "p6-html-empty-query",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "(?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/routes\\/books\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:15|16|17|18|19|20|21|22)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-html\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:33|34|35|36|37|38|39|40|41)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:empty|blank|missing|no (q|query)|without (a )?(q|query)|all (50 )?books|no (books|cards|results)|zero (books|cards)|falsy|getAllBooks|AC-?14))",
+            "flags": "im",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "p7-unescaped-query",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "(?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/views\\/books\\/search-results\\.ejs\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:2|3|4|5|6|7|8)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-html\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:55|56|57|58|59|60|61|62|63)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:xss|cross[- ]?site|unescaped|not escaped|escap|raw html|html injection|script injection|inject))",
+            "flags": "im",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?review-pr\"",
+            "arm": "with-only"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 7,
+            "costUsd": 0.0799309,
+            "judgeCostUsd": 0,
+            "durationSeconds": 26,
+            "startedAt": "2026-11-23T14:55:34.774Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-4PL4qX/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "json-array",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p1-sql-template-literal",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p2-length-before-trim",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p6-html-empty-query",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p7-unescaped-query",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 7,
+            "costUsd": 0.07937319999999999,
+            "judgeCostUsd": 0,
+            "durationSeconds": 25,
+            "startedAt": "2026-11-23T14:55:34.774Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-YjKrMp/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "json-array",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p1-sql-template-literal",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p2-length-before-trim",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p6-html-empty-query",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p7-unescaped-query",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.8184343000000001,
+            "judgeCostUsd": 0,
+            "durationSeconds": 150,
+            "startedAt": "2026-11-23T14:55:59.548Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-w0A7xm/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "json-array",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^[ \\t]*\\[\\s*\\][ \\t]*$|\\[\\s*\\{(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"severity\"\\s*:\\s*\"(?:major|minor)\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"issue\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"evidence\"\\s*:)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p1-sql-template-literal",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:36|37|38|39|40|41|42|43|44|45)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:inject|interpolat|template (literal|string)|string[- ]?(built|building|concat)|concatenat|escap|placeholder|parameteri[sz]|bound param|prepared))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p2-length-before-trim",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:28|29|30|31|32|33|34|35|36|37)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:83|84|85|86|87|88|89|90|91|92|93|94)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:82|83|84|85|86|87|88|89)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:trim|whitespace|padd|leading|trailing|spaces|raw (value|input|string|query)))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p6-html-empty-query",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/routes\\/books\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:15|16|17|18|19|20|21|22)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-html\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:33|34|35|36|37|38|39|40|41)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:empty|blank|missing|no (q|query)|without (a )?(q|query)|all (50 )?books|no (books|cards|results)|zero (books|cards)|falsy|getAllBooks|AC-?14))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p7-unescaped-query",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/views\\/books\\/search-results\\.ejs\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:2|3|4|5|6|7|8)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-html\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:55|56|57|58|59|60|61|62|63)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:xss|cross[- ]?site|unescaped|not escaped|escap|raw html|html injection|script injection|inject))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 3,
+            "costUsd": 0.1044351,
+            "judgeCostUsd": 0,
+            "durationSeconds": 30,
+            "startedAt": "2026-11-23T14:56:00.354Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-bsNyMa/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "json-array",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^[ \\t]*\\[\\s*\\][ \\t]*$|\\[\\s*\\{(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"severity\"\\s*:\\s*\"(?:major|minor)\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"issue\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"evidence\"\\s*:)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p1-sql-template-literal",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:36|37|38|39|40|41|42|43|44|45)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:inject|interpolat|template (literal|string)|string[- ]?(built|building|concat)|concatenat|escap|placeholder|parameteri[sz]|bound param|prepared))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p2-length-before-trim",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:28|29|30|31|32|33|34|35|36|37)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:83|84|85|86|87|88|89|90|91|92|93|94)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:82|83|84|85|86|87|88|89)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:trim|whitespace|padd|leading|trailing|spaces|raw (value|input|string|query)))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p6-html-empty-query",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/routes\\/books\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:15|16|17|18|19|20|21|22)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-html\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:33|34|35|36|37|38|39|40|41)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:empty|blank|missing|no (q|query)|without (a )?(q|query)|all (50 )?books|no (books|cards|results)|zero (books|cards)|falsy|getAllBooks|AC-?14))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p7-unescaped-query",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/views\\/books\\/search-results\\.ejs\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:2|3|4|5|6|7|8)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-html\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:55|56|57|58|59|60|61|62|63)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:xss|cross[- ]?site|unescaped|not escaped|escap|raw html|html injection|script injection|inject))",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 3,
+            "costUsd": 0.1057968,
+            "judgeCostUsd": 0,
+            "durationSeconds": 25,
+            "startedAt": "2026-11-23T14:56:30.777Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-VBOfPQ/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "json-array",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^[ \\t]*\\[\\s*\\][ \\t]*$|\\[\\s*\\{(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"severity\"\\s*:\\s*\"(?:major|minor)\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"issue\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"evidence\"\\s*:)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p1-sql-template-literal",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:36|37|38|39|40|41|42|43|44|45)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:inject|interpolat|template (literal|string)|string[- ]?(built|building|concat)|concatenat|escap|placeholder|parameteri[sz]|bound param|prepared))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p2-length-before-trim",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:28|29|30|31|32|33|34|35|36|37)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:83|84|85|86|87|88|89|90|91|92|93|94)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:82|83|84|85|86|87|88|89)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:trim|whitespace|padd|leading|trailing|spaces|raw (value|input|string|query)))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p6-html-empty-query",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/routes\\/books\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:15|16|17|18|19|20|21|22)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-html\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:33|34|35|36|37|38|39|40|41)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:empty|blank|missing|no (q|query)|without (a )?(q|query)|all (50 )?books|no (books|cards|results)|zero (books|cards)|falsy|getAllBooks|AC-?14))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p7-unescaped-query",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/views\\/books\\/search-results\\.ejs\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:2|3|4|5|6|7|8)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-html\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:55|56|57|58|59|60|61|62|63)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:xss|cross[- ]?site|unescaped|not escaped|escap|raw html|html injection|script injection|inject))",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 2,
+            "costUsd": 0.105118,
+            "judgeCostUsd": 0,
+            "durationSeconds": 27,
+            "startedAt": "2026-11-23T14:56:55.828Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-6vouE3/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "json-array",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^[ \\t]*\\[\\s*\\][ \\t]*$|\\[\\s*\\{(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"severity\"\\s*:\\s*\"(?:major|minor)\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"issue\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"evidence\"\\s*:)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p1-sql-template-literal",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:36|37|38|39|40|41|42|43|44|45)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:inject|interpolat|template (literal|string)|string[- ]?(built|building|concat)|concatenat|escap|placeholder|parameteri[sz]|bound param|prepared))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p2-length-before-trim",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:28|29|30|31|32|33|34|35|36|37)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:83|84|85|86|87|88|89|90|91|92|93|94)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:82|83|84|85|86|87|88|89)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:trim|whitespace|padd|leading|trailing|spaces|raw (value|input|string|query)))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p6-html-empty-query",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/routes\\/books\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:15|16|17|18|19|20|21|22)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-html\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:33|34|35|36|37|38|39|40|41)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:empty|blank|missing|no (q|query)|without (a )?(q|query)|all (50 )?books|no (books|cards|results)|zero (books|cards)|falsy|getAllBooks|AC-?14))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p7-unescaped-query",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/views\\/books\\/search-results\\.ejs\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:2|3|4|5|6|7|8)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-html\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:55|56|57|58|59|60|61|62|63)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:xss|cross[- ]?site|unescaped|not escaped|escap|raw html|html injection|script injection|inject))",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.3333333333333333,
+        "passRate": 0.3333333333333333,
+        "scoreWithout": 1,
+        "passRateWithout": 1,
+        "delta": -0.6666666666666667
+      }
+    },
+    {
+      "name": "b",
+      "dir": "evals/review-pr/b",
+      "source": "mixed",
+      "promptMarkdown": "Please review this branch's changes against `main`. They implement ticket BOOK-101, \"Search books by title or author\".\n\nAcceptance criteria:\n- A query matches title or author: partial, case-insensitive\n- An empty query returns all books\n- Input is trimmed; over 100 characters returns a validation error\n- SQL is parameterised: no string-built queries\n- Vitest covers each criterion; `npm run test:run` passes\n\nConstraints: no schema changes, no new dependencies, never touch `bookshelf.db`, `seed.sql` or `.env`, keep the interface exactly as specified.\n\nLook for bugs, security holes, acceptance criteria without a test that can fail, and broken constraints. Don't change any files.\n\nReply with the findings as a JSON array of objects with the keys `file`, `line`, `severity`, `issue` and `evidence`: `file` is the path from the repo root, `line` the line number in that file on this branch, `severity` is `major` or `minor`, `issue` says what is wrong, and `evidence` quotes the code that shows it. If you find nothing, reply with an empty array `[]`.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 900,
+      "maxTurns": 60,
+      "graders": [
+        {
+          "name": "json-array",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^[ \\t]*\\[\\s*\\][ \\t]*$|\\[\\s*\\{(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"severity\"\\s*:\\s*\"(?:major|minor)\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"issue\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"evidence\"\\s*:)",
+            "flags": "m",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "p11-shared-test-db",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "(?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:4|5|6|7|8|9|10)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:test-api\\.db|same (db|database|file|path|tmp)|shared?\\b|parallel|concurren|collid|collision|clobber|isolat|race|reuse|api\\.test))",
+            "flags": "im",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "p3-off-by-one-100",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "(?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:26|27|28|29|30|31|32)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:85|86|87|88|89|90|91|92|93|94|95)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:75|76|77|78|79|80|81|82|83|84|85|86|87|88|89|90)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:off[- ]by[- ]one|fencepost|exactly 100|100[- ](char|code)|at the limit|boundary|inclusive|greater than or equal|\\b99\\b))",
+            "flags": "im",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "p4-author-case-sensitive",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "(?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:36|37|38|39|40|41|42)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:26|27|28|29|30|31|32|33|34|47|48|49|50|51|52|53|54)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:\\bcase\\b|case-|sensitiv|upper|fold|herbert|weir|mi[eé]ville|(no|without|missing|lacks) ulower|ulower\\(author))",
+            "flags": "im",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "p9-non-string-q-crash",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "(?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:25|26|27|28|29|30|31)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:93|94|95|96|97|98|99|100|101)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:88|89|90|91|92|93|94|95|96)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-html\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:56|57|58|59|60|61|62|63|80|81|82|83|84|85|86|87)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:typeof|non-?string|not a string|\\ban array|arrays|\\[x\\]|objects|nested object|\\bcast|type (check|assertion|guard)|unchecked|\\.trim is not|TypeError|\\b500\\b|crash|throws?\\b|exception|stack trace|q=a&q=b|repeated|duplicate (q|param)|multiple (q|values)))",
+            "flags": "im",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?review-pr\"",
+            "arm": "with-only"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 7,
+            "costUsd": 0.0802464,
+            "judgeCostUsd": 0,
+            "durationSeconds": 22,
+            "startedAt": "2026-11-23T14:57:23.297Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-cvkNuF/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "json-array",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p11-shared-test-db",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p3-off-by-one-100",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p4-author-case-sensitive",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p9-non-string-q-crash",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.6762722000000001,
+            "judgeCostUsd": 0,
+            "durationSeconds": 127,
+            "startedAt": "2026-11-23T14:57:45.429Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-JEOflt/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "json-array",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^[ \\t]*\\[\\s*\\][ \\t]*$|\\[\\s*\\{(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"severity\"\\s*:\\s*\"(?:major|minor)\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"issue\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"evidence\"\\s*:)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p11-shared-test-db",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:4|5|6|7|8|9|10)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:test-api\\.db|same (db|database|file|path|tmp)|shared?\\b|parallel|concurren|collid|collision|clobber|isolat|race|reuse|api\\.test))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p3-off-by-one-100",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:26|27|28|29|30|31|32)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:85|86|87|88|89|90|91|92|93|94|95)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:75|76|77|78|79|80|81|82|83|84|85|86|87|88|89|90)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:off[- ]by[- ]one|fencepost|exactly 100|100[- ](char|code)|at the limit|boundary|inclusive|greater than or equal|\\b99\\b))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p4-author-case-sensitive",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:36|37|38|39|40|41|42)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:26|27|28|29|30|31|32|33|34|47|48|49|50|51|52|53|54)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:\\bcase\\b|case-|sensitiv|upper|fold|herbert|weir|mi[eé]ville|(no|without|missing|lacks) ulower|ulower\\(author))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p9-non-string-q-crash",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:25|26|27|28|29|30|31)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:93|94|95|96|97|98|99|100|101)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:88|89|90|91|92|93|94|95|96)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-html\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:56|57|58|59|60|61|62|63|80|81|82|83|84|85|86|87)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:typeof|non-?string|not a string|\\ban array|arrays|\\[x\\]|objects|nested object|\\bcast|type (check|assertion|guard)|unchecked|\\.trim is not|TypeError|\\b500\\b|crash|throws?\\b|exception|stack trace|q=a&q=b|repeated|duplicate (q|param)|multiple (q|values)))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 6,
+            "costUsd": 0.0711175,
+            "judgeCostUsd": 0,
+            "durationSeconds": 12,
+            "startedAt": "2026-11-23T14:58:29.958Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-3Q8NXD/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "json-array",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p11-shared-test-db",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p3-off-by-one-100",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p4-author-case-sensitive",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p9-non-string-q-crash",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0.8,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.101406,
+            "judgeCostUsd": 0,
+            "durationSeconds": 21,
+            "startedAt": "2026-11-23T14:58:42.175Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-z712gW/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "json-array",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^[ \\t]*\\[\\s*\\][ \\t]*$|\\[\\s*\\{(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"severity\"\\s*:\\s*\"(?:major|minor)\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"issue\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"evidence\"\\s*:)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p11-shared-test-db",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p3-off-by-one-100",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:26|27|28|29|30|31|32)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:85|86|87|88|89|90|91|92|93|94|95)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:75|76|77|78|79|80|81|82|83|84|85|86|87|88|89|90)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:off[- ]by[- ]one|fencepost|exactly 100|100[- ](char|code)|at the limit|boundary|inclusive|greater than or equal|\\b99\\b))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p4-author-case-sensitive",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:36|37|38|39|40|41|42)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:26|27|28|29|30|31|32|33|34|47|48|49|50|51|52|53|54)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:\\bcase\\b|case-|sensitiv|upper|fold|herbert|weir|mi[eé]ville|(no|without|missing|lacks) ulower|ulower\\(author))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p9-non-string-q-crash",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:25|26|27|28|29|30|31)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:93|94|95|96|97|98|99|100|101)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:88|89|90|91|92|93|94|95|96)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-html\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:56|57|58|59|60|61|62|63|80|81|82|83|84|85|86|87)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:typeof|non-?string|not a string|\\ban array|arrays|\\[x\\]|objects|nested object|\\bcast|type (check|assertion|guard)|unchecked|\\.trim is not|TypeError|\\b500\\b|crash|throws?\\b|exception|stack trace|q=a&q=b|repeated|duplicate (q|param)|multiple (q|values)))",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0.8,
+            "passed": false,
+            "turns": 3,
+            "costUsd": 0.1029236,
+            "judgeCostUsd": 0,
+            "durationSeconds": 20,
+            "startedAt": "2026-11-23T14:59:02.817Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-3V2Xy8/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "json-array",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^[ \\t]*\\[\\s*\\][ \\t]*$|\\[\\s*\\{(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"severity\"\\s*:\\s*\"(?:major|minor)\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"issue\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"evidence\"\\s*:)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p11-shared-test-db",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p3-off-by-one-100",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:26|27|28|29|30|31|32)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:85|86|87|88|89|90|91|92|93|94|95)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:75|76|77|78|79|80|81|82|83|84|85|86|87|88|89|90)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:off[- ]by[- ]one|fencepost|exactly 100|100[- ](char|code)|at the limit|boundary|inclusive|greater than or equal|\\b99\\b))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p4-author-case-sensitive",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:36|37|38|39|40|41|42)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:26|27|28|29|30|31|32|33|34|47|48|49|50|51|52|53|54)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:\\bcase\\b|case-|sensitiv|upper|fold|herbert|weir|mi[eé]ville|(no|without|missing|lacks) ulower|ulower\\(author))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p9-non-string-q-crash",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:25|26|27|28|29|30|31)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:93|94|95|96|97|98|99|100|101)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:88|89|90|91|92|93|94|95|96)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-html\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:56|57|58|59|60|61|62|63|80|81|82|83|84|85|86|87)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:typeof|non-?string|not a string|\\ban array|arrays|\\[x\\]|objects|nested object|\\bcast|type (check|assertion|guard)|unchecked|\\.trim is not|TypeError|\\b500\\b|crash|throws?\\b|exception|stack trace|q=a&q=b|repeated|duplicate (q|param)|multiple (q|values)))",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0.8,
+            "passed": false,
+            "turns": 2,
+            "costUsd": 0.0967711,
+            "judgeCostUsd": 0,
+            "durationSeconds": 20,
+            "startedAt": "2026-11-23T14:59:22.847Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-DBTEfT/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "json-array",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^[ \\t]*\\[\\s*\\][ \\t]*$|\\[\\s*\\{(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"severity\"\\s*:\\s*\"(?:major|minor)\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"issue\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"evidence\"\\s*:)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p11-shared-test-db",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p3-off-by-one-100",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:26|27|28|29|30|31|32)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:85|86|87|88|89|90|91|92|93|94|95)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:75|76|77|78|79|80|81|82|83|84|85|86|87|88|89|90)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:off[- ]by[- ]one|fencepost|exactly 100|100[- ](char|code)|at the limit|boundary|inclusive|greater than or equal|\\b99\\b))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p4-author-case-sensitive",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:36|37|38|39|40|41|42)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:26|27|28|29|30|31|32|33|34|47|48|49|50|51|52|53|54)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:\\bcase\\b|case-|sensitiv|upper|fold|herbert|weir|mi[eé]ville|(no|without|missing|lacks) ulower|ulower\\(author))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "p9-non-string-q-crash",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched (?:^[ \\t]*|\\[\\s*|\\}\\s*,\\s*)\\{(?:(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?src\\/models\\/book\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:25|26|27|28|29|30|31)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/models\\/book-search\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:93|94|95|96|97|98|99|100|101)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-api\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:88|89|90|91|92|93|94|95|96)(?!\\d))|(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:\\s*\"(?:[^\"\\\\]*/)?tests\\/routes\\/search-html\\.test\\.ts\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:\\s*\"?(?:56|57|58|59|60|61|62|63|80|81|82|83|84|85|86|87)(?!\\d)))(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"(?:issue|evidence)\"\\s*:\\s*\"(?:[^\"\\\\]|\\\\.)*?(?:typeof|non-?string|not a string|\\ban array|arrays|\\[x\\]|objects|nested object|\\bcast|type (check|assertion|guard)|unchecked|\\.trim is not|TypeError|\\b500\\b|crash|throws?\\b|exception|stack trace|q=a&q=b|repeated|duplicate (q|param)|multiple (q|values)))",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.3333333333333333,
+        "passRate": 0.3333333333333333,
+        "scoreWithout": 0.8000000000000002,
+        "passRateWithout": 0,
+        "delta": -0.46666666666666684
+      }
+    },
+    {
+      "name": "clean",
+      "dir": "evals/review-pr/clean",
+      "source": "mixed",
+      "promptMarkdown": "Please review this branch's changes against `main`. They implement ticket BOOK-101, \"Search books by title or author\".\n\nAcceptance criteria:\n- A query matches title or author: partial, case-insensitive\n- An empty query returns all books\n- Input is trimmed; over 100 characters returns a validation error\n- SQL is parameterised: no string-built queries\n- Vitest covers each criterion; `npm run test:run` passes\n\nConstraints: no schema changes, no new dependencies, never touch `bookshelf.db`, `seed.sql` or `.env`, keep the interface exactly as specified.\n\nLook for bugs, security holes, acceptance criteria without a test that can fail, and broken constraints. Don't change any files.\n\nReply with the findings as a JSON array of objects with the keys `file`, `line`, `severity`, `issue` and `evidence`: `file` is the path from the repo root, `line` the line number in that file on this branch, `severity` is `major` or `minor`, `issue` says what is wrong, and `evidence` quotes the code that shows it. If you find nothing, reply with an empty array `[]`.",
+      "runsPerCase": 3,
+      "timeoutSeconds": 900,
+      "maxTurns": 60,
+      "graders": [
+        {
+          "name": "empty-array",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^[ \\t]*\\[\\s*\\][ \\t]*$",
+            "flags": "m",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "json-array",
+          "type": "regex",
+          "weight": 1,
+          "config": {
+            "target": "last_message",
+            "pattern": "^[ \\t]*\\[\\s*\\][ \\t]*$|\\[\\s*\\{(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"severity\"\\s*:\\s*\"(?:major|minor)\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"issue\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"evidence\"\\s*:)",
+            "flags": "m",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "no-major-finding",
+          "type": "regex",
+          "weight": 3,
+          "config": {
+            "target": "last_message",
+            "pattern": "^(?![\\s\\S]*\"severity\"\\s*:\\s*\"major\")(?=[\\s\\S]*?(?:(?:^|\\n)[ \\t]*\\[\\s*\\][ \\t]*(?:\\n|$)|\\[\\s*\\{(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"severity\"\\s*:\\s*\"(?:major|minor)\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"issue\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"evidence\"\\s*:)))",
+            "flags": "i",
+            "match": "contains"
+          }
+        },
+        {
+          "name": "skill-fired",
+          "type": "tool_used",
+          "weight": 1,
+          "config": {
+            "tool": "Skill",
+            "input_match": "\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?review-pr\"",
+            "arm": "with-only"
+          }
+        }
+      ],
+      "arms": {
+        "with": [
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 8,
+            "costUsd": 0.08182429999999999,
+            "judgeCostUsd": 0,
+            "durationSeconds": 20,
+            "startedAt": "2026-11-23T14:59:43.094Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-GIfpXf/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "empty-array",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "json-array",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-major-finding",
+                "passed": false,
+                "weight": 3,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 8,
+            "costUsd": 0.0840786,
+            "judgeCostUsd": 0,
+            "durationSeconds": 21,
+            "startedAt": "2026-11-23T14:59:52.160Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-pgjpon/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "empty-array",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "json-array",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-major-finding",
+                "passed": false,
+                "weight": 3,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 1,
+            "costUsd": 0.4858297,
+            "judgeCostUsd": 0,
+            "durationSeconds": 73,
+            "startedAt": "2026-11-23T15:00:03.084Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-JpLJhN/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "empty-array",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^[ \\t]*\\[\\s*\\][ \\t]*$",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "json-array",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^[ \\t]*\\[\\s*\\][ \\t]*$|\\[\\s*\\{(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"severity\"\\s*:\\s*\"(?:major|minor)\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"issue\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"evidence\"\\s*:)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-major-finding",
+                "passed": true,
+                "weight": 3,
+                "explanation": "matched ^(?![\\s\\S]*\"severity\"\\s*:\\s*\"major\")(?=[\\s\\S]*?(?:(?:^|\\n)[ \\t]*\\[\\s*\\][ \\t]*(?:\\n|$)|\\[\\s*\\{(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"severity\"\\s*:\\s*\"(?:major|minor)\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"issue\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"evidence\"\\s*:)))",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "skill-fired",
+                "passed": true,
+                "weight": 1,
+                "explanation": "Skill called 1x (expected 1..∞)",
+                "withOnly": true,
+                "scored": false
+              }
+            ]
+          }
+        ],
+        "without": [
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 8,
+            "costUsd": 0.1442505,
+            "judgeCostUsd": 0,
+            "durationSeconds": 38,
+            "startedAt": "2026-11-23T15:00:12.850Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-KjQnXK/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "empty-array",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "json-array",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-major-finding",
+                "passed": false,
+                "weight": 3,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 0,
+            "passed": false,
+            "turns": 6,
+            "costUsd": 0.1409,
+            "judgeCostUsd": 0,
+            "durationSeconds": 43,
+            "startedAt": "2026-11-23T15:00:50.902Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-Bx1mj4/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "empty-array",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "json-array",
+                "passed": false,
+                "weight": 1,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-major-finding",
+                "passed": false,
+                "weight": 3,
+                "explanation": "pattern not found in last_message",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          },
+          {
+            "score": 1,
+            "passed": true,
+            "turns": 4,
+            "costUsd": 0.1179792,
+            "judgeCostUsd": 0,
+            "durationSeconds": 31,
+            "startedAt": "2026-11-23T15:01:16.129Z",
+            "error": null,
+            "tracePath": "/private/tmp/e-90T9p4/out/trace.jsonl",
+            "skippedPaidGraders": false,
+            "graders": [
+              {
+                "name": "empty-array",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^[ \\t]*\\[\\s*\\][ \\t]*$",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "json-array",
+                "passed": true,
+                "weight": 1,
+                "explanation": "matched ^[ \\t]*\\[\\s*\\][ \\t]*$|\\[\\s*\\{(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"severity\"\\s*:\\s*\"(?:major|minor)\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"issue\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"evidence\"\\s*:)",
+                "withOnly": false,
+                "scored": true
+              },
+              {
+                "name": "no-major-finding",
+                "passed": true,
+                "weight": 3,
+                "explanation": "matched ^(?![\\s\\S]*\"severity\"\\s*:\\s*\"major\")(?=[\\s\\S]*?(?:(?:^|\\n)[ \\t]*\\[\\s*\\][ \\t]*(?:\\n|$)|\\[\\s*\\{(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"file\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"line\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"severity\"\\s*:\\s*\"(?:major|minor)\")(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"issue\"\\s*:)(?=(?:[^{}\"]|\"(?:[^\"\\\\]|\\\\.)*\")*?\"evidence\"\\s*:)))",
+                "withOnly": false,
+                "scored": true
+              }
+            ]
+          }
+        ]
+      },
+      "aggregates": {
+        "score": 0.3333333333333333,
+        "passRate": 0.3333333333333333,
+        "scoreWithout": 0.3333333333333333,
+        "passRateWithout": 0.3333333333333333,
+        "delta": 0
+      }
+    }
+  ],
+  "aggregates": {
+    "casesTotal": 3,
+    "casesPassed": 0,
+    "overallScore": 0.3333333333333333,
+    "overallPassRate": 0.3333333333333333,
+    "meanDelta": -0.3777777777777778
+  }
+}
