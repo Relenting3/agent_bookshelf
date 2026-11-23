@@ -430,6 +430,22 @@ One model per session (switching invalidates the cache). Commit at the end of ev
     **Same numbers on quality; cost and time moved.** Caveat for the README: recall was already at the ceiling, and n = 8 plants × 3 runs is small, so "held" means no regression seen, not proof of equality. The two before-batch "real but not planted" findings (test gaps on bent tests) didn't recur; findings differ only in duplicates
 - [x] Merge the chosen run into `capstone/book-101`. Done 2026-11-23: **run 2** (my pick: after-lever plugin, 51 tests, in SPEC scope, no implementation-named test), fast-forward of `capstone/book-101` to `capstone/run-2` (it was book-101 + the run's commits). `capstone/run-1` stays as evidence
 
+- Session 4 costs (sources: `-p` JSON `total_cost_usd`, `/usage`, or `stage-costs.mjs` on the transcript; the script can under-count calls that never reach a transcript, 0.3–8% so far):
+
+  | Session | Steps | Cost | Model(s) | Source |
+  |---|---|---|---|---|
+  | Plants build (`c38e7de9`) | patches, answers, make-branches, score.mjs | $3.63 | Opus | script |
+  | Pilots (`5117550a`, `9692cd0a`) | summarized diff; wakeup tail | $1.98 | Sonnet main + Opus agents | `-p` JSON |
+  | ScheduleWakeup check | 2 Haiku `-p` calls | < $0.05 | Haiku | not priced |
+  | Before batch | 9 × /review-pr | $11.12 | Sonnet main + Opus agents | `-p` JSON |
+  | Lever build (`bba4f51c`) | diff by path | $1.38 | Opus | script |
+  | After batch | 9 × /review-pr | $6.62 | Sonnet main + Opus agents | `-p` JSON |
+  | Run 2 (`720d56e7`) | /ship-ticket BOOK-101 | $2.45 | Sonnet $1.17 · Opus $1.26 · Haiku $0.02 | `/usage` (`session-4-run-2-usage.png`) |
+  | Walkthrough (`0a2d8d06`, this guide) | all steps, checks, bookkeeping | $7.29 | Opus | script (no `/usage` taken); export `session-4-walkthrough.txt` |
+  | **Session 4 total** | | **≈ $34.50** | | |
+
+  Running total ≈ $70 (Sessions 1–4 incl. their walkthroughs except Session 1's; Session 0 not counted); over the original ~$50, by my call at the end of Session 3 (budget not a constraint). The eval batches were $17.74 of it; the lever saves ≈ $0.50 per standalone review from here on
+
 ### Session 5 (Mon): stretch B (only if all green) + README + submit
 - [ ] *(Stretch B)* `evals/review-pr/` cases built from the planted patches (scaffold: `git init`, base commit, apply patch); prompt that doesn't name the skill; regex graders per planted bug; with vs without arms (`--max-cost-usd`, `--threshold 0.8`, pinned `--model` and `--judge-model`); report Δ
 - [ ] README (checklist below), `claude plugin validate` screenshot
