@@ -21,11 +21,13 @@ Use exactly these forms. Write `git -P diff`, never plain `git diff`: some local
 -- . ':(exclude)ticket-to-merge' ':(exclude)homework' ':(exclude).claude' ':(exclude)tickets'
 ```
 
-If a hook rejects a command and asks you to re-run it with different input, re-run it exactly as given. Batch independent commands in one turn.
+Each Bash call runs exactly one of the command forms in this skill, with the SHA, ref, pathspecs and file path written out literally. No shell variables, loops, `;`, `&&`, `||`, pipes, redirects or `2>/dev/null`: permission rules match whole commands, so anything else is denied in unattended runs. Batching means several Bash calls in one message, never one combined command.
+
+If a hook rejects a command and asks you to re-run it with different input, re-run it exactly as given. If a Bash call is denied, re-send each command on its own in its exact form. A denial never ends the review (it is not a failed command); only the stop rules in steps 1 and 3 do.
 
 ## 1. Base
 
-1. `git rev-parse --show-toplevel` and `git rev-parse --absolute-git-dir` (one turn). If they fail: not a git repo → output `[]` and `Review: 0 findings · not run: not a git repository`, then stop.
+1. `git rev-parse --show-toplevel` and `git rev-parse --absolute-git-dir` (two Bash calls, one message). If they fail: not a git repo → output `[]` and `Review: 0 findings · not run: not a git repository`, then stop.
 2. Base ref: the base argument if given; otherwise the first of `main`, `master`, `origin/HEAD` for which `git rev-parse --verify --quiet <ref>` succeeds.
 3. `git merge-base HEAD <ref>` → the merge-base SHA. No ref found, or merge-base fails → output `[]` and `Review: 0 findings · not run: no base found (<what you tried>)`, then stop.
 
@@ -40,7 +42,7 @@ Diff file (below, `<diff file>`): `<git dir>/ttm-review-${CLAUDE_SESSION_ID}.dif
 
 Working tree against the merge-base, so line numbers match the files on disk:
 
-1. `git -P diff --stat <sha> EXCL` and `git -P diff --name-status <sha> EXCL`
+1. `git -P diff --stat <sha> EXCL` and `git -P diff --name-status <sha> EXCL` (two Bash calls, one message)
 2. `git ls-files --others --exclude-standard EXCL`: the untracked files. They aren't in the diff; the reviewers Read them in full.
 3. If the diff and the untracked list are both empty → output `[]` and `Review: 0 findings · no changes against <ref> <short-sha>`, then stop.
 4. If the `--stat` total (insertions + deletions) is about 1,600 or less (≈ 2,000 diff lines): `git -P diff --output=<diff file> <sha> EXCL`. Git writes the file itself (no shell redirect); it prints nothing. Otherwise **large mode**: don't fetch the full diff; pass the `--stat` and the file list, and tell the reviewers to Read the changed files.
