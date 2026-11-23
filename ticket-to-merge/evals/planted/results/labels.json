@@ -5,5 +5,12 @@
     "line": 24,
     "label": "real",
     "note": "No test sends a word fragment (all queries are whole words), so a whole-word matcher passes the suite: T1 'partial' untested (T5). Seen in pilot clean-1-wakeup; applies to every run of clean"
+  },
+  {
+    "branch": "a",
+    "file": "tests/routes/search-html.test.ts",
+    "line": 26,
+    "label": "real",
+    "note": "No HTML-route test for empty/missing q (T2): AC-14 was dropped on purpose for P6 green suite; outside P6 also-range (36-38). Applies to every run of a"
   }
 ]
