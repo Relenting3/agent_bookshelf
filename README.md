@@ -1,3 +1,15 @@
+> **Capstone branch: Ticket to Merge (BOOK-101).** This branch adds the `ticket-to-merge` plugin. It ships a ticket test-first with agents (`/ship-ticket`) and reviews a branch diff with read-only agents (`/review-pr`). It also implements BOOK-101, search books by title or author, from [`SPEC.md`](SPEC.md).
+>
+> Repo: https://github.com/Relenting3/agent_bookshelf/tree/capstone/book-101
+>
+> ```bash
+> npm install && npm run test:run                    # 51/51 green
+> claude --plugin-dir ./ticket-to-merge              # load the plugin
+> /ticket-to-merge:review-pr [base] [spec]           # or /ticket-to-merge:ship-ticket [spec]
+> ```
+>
+> Full write-up (how to run, design, guardrails, evals, cost report): [`ticket-to-merge/README.md`](ticket-to-merge/README.md). The original README follows.
+
 ```
 ╔═════════════════════════════════════════════╗
 ║│▓│▒│░│█│▓│░│▒│█│▓│▒│░│█│▓│░│▒│█│▓│▒│░│█│▓│░│║
