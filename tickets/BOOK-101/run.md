@@ -1,0 +1,37 @@
+# Run: BOOK-101 · READY
+- Verdict: READY
+- Fix rounds: red 0/2 · tests 0/2 · review 0/2 · planner revisions 1
+- Tests: Tests: 51/51 passed · Typecheck: OK
+- Review: Review: 0 findings (0 major) · raw 0 from 3 reviewers · dropped 0 by verifier · base b78f0a716daed002735ce9866e72376dbcac845a b78f0a7 · spec tickets/BOOK-101/plan.md · CLAUDE.md yes · notes: Glob unavailable, existence of spec and CLAUDE.md taken from context
+- Files:
+  - src/db/index.ts
+  - src/models/book.ts
+  - src/routes/api.ts
+  - src/routes/books.ts
+  - src/views/books/index.ejs
+  - src/views/books/search-results.ejs
+  - tests/models/book-search.test.ts
+  - tests/routes/search-api.test.ts
+  - tests/routes/search-html.test.ts
+  - tickets/BOOK-101/plan.md
+  - (plus tickets/BOOK-101/review-1.json and run.md, added in the summary commit)
+- Questions and answers:
+  - "How should matching get Unicode case folding and literal `%`/`_`/`\`?" → Register JS lower() in sql.js (not the recommendation; planner revision 1, function named `ulower`)
+  - "Where should the shared validator live?" → In src/models/book.ts (Recommended)
+  - "Does `.no-results` get a CSS rule?" → No rule (not the recommendation)
+- PASSES-ALREADY:
+  - PASSES-ALREADY tests/models/book-search.test.ts › searchBooks › AC-1: searchBooks matches title partial in any case: passes before implementation
+  - PASSES-ALREADY tests/models/book-search.test.ts › searchBooks › AC-2: HERBERT returns Dune: passes before implementation
+  - PASSES-ALREADY tests/models/book-search.test.ts › searchBooks › AC-2: weir returns exactly Project Hail Mary and The Martian: passes before implementation
+  - PASSES-ALREADY tests/models/book-search.test.ts › searchBooks › AC-3: mieville returns []: passes before implementation
+  - PASSES-ALREADY tests/models/book-search.test.ts › searchBooks › AC-4: pragmatic programmer matches as a phrase: passes before implementation
+  - PASSES-ALREADY tests/models/book-search.test.ts › searchBooks › AC-4: words split across title and author don't match: passes before implementation
+  - PASSES-ALREADY tests/models/book-search.test.ts › searchBooks › AC-5: results follow getAllBooks() order: passes before implementation
+  - PASSES-ALREADY tests/routes/search-api.test.ts › GET /api/books/search › AC-19: GET /api/books/1 still returns The Pragmatic Programmer: passes before implementation
+  - PASSES-ALREADY tests/routes/search-html.test.ts › GET /books/search (HTML fragment) › AC-18: GET / shows 50 cards and input targets #search-results: passes before implementation
+- Open:
+  - No findings, failures or out-of-scope changes.
+  - RED check: the test-runner printed `STATUS: FAIL` although RED-WRONG was 0, FAILURES was none, pre-existing tests were 14/14 and the typecheck was OK. By its agent file that is a PASS, so the orchestrator treated it as PASS and made the red commit.
+  - Implementer deviation from the plan: `ulower` is re-registered after `db.export()` in `saveDb`, because sql.js drops registered functions on export; a cast is needed because the typings omit `create_function`.
+  - Not covered by agents (SPEC verification steps 2–4): API by hand with curl, browser check of the 400 swap (AC-18) and scope diff against main. Those are for the human.
+- Commits: START b78f0a7 · BOOK-101: failing tests (red) 1180a72 · BOOK-101: implement (green) 3a5b040 · BOOK-101: run summary (READY) (this commit)
