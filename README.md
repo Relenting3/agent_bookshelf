@@ -3,12 +3,13 @@
 > Repo: https://github.com/Relenting3/agent_bookshelf/tree/capstone/book-101
 >
 > ```bash
-> npm install && npm run test:run                    # 51/51 green
-> claude --plugin-dir ./ticket-to-merge              # load the plugin
-> /ticket-to-merge:review-pr [base] [spec]           # or /ticket-to-merge:ship-ticket [spec]
+> git clone --branch capstone/book-101 https://github.com/Relenting3/agent_bookshelf.git ~/ttm
+> claude --model sonnet --plugin-dir ~/ttm/ticket-to-merge   # in your repo, on the branch to review, then:
+> /ticket-to-merge:review-pr [base] [spec]                    # headless: ~/ttm/ticket-to-merge/scripts/review.sh -p
+> /ticket-to-merge:ship-ticket [spec]                         # new feature branch + spec; or scripts/ship.sh [spec]
 > ```
 >
-> Full write-up (how to run, design, guardrails, evals, cost report): [`ticket-to-merge/README.md`](ticket-to-merge/README.md). The original README follows.
+> Full write-up (how to run, results, design, guardrails, evals, cost report): [`ticket-to-merge/README.md`](ticket-to-merge/README.md). The original README follows.
 
 ```
 ╔═════════════════════════════════════════════╗

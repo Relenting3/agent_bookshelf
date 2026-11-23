@@ -100,3 +100,15 @@ Full-run ceiling: the probe cost $0.82 (with) and $0.10 (without) on `a`; Sessio
 - **Cause:** `review-pr/SKILL.md` said "Batch independent commands in one turn", which the main session read as "one command line". Nothing said that a denial isn't a reason to stop.
 - **Fix (skill wording only):** the Commands section now says each Bash call runs exactly one listed form with the SHA, ref, pathspecs and path written out literally (no variables, loops, `;`, `&&`, `||`, pipes, redirects or `2>/dev/null`). Batching means several Bash calls in one message. A denied call is re-sent command by command, and a denial never ends the review (only the stop rules in steps 1 and 3 do). Steps 1.1 and 3.1 say "two Bash calls, one message". `ship-ticket/SKILL.md`'s "Bash only for" line got the same one-command-per-call rule (same failure class under `ship.sh`'s `--allowedTools`).
 - Run 1's with-arm scores measure this bug, not the review. The suite needs a re-run after the fix.
+
+## Run 2 (after the fix `18fe623`)
+
+2026-11-23, 18 runs, not partial, 595 s, $7.10. Results in [`runs/2/`](runs/2/).
+
+| Case | With | Without | Δ |
+|---|---|---|---|
+| a | 1.00 | 1.00 | 0.00 |
+| b | 1.00 | 0.73 | +0.27 |
+| clean | 1.00 | 0.80 | +0.20 |
+
+Mean Δ +0.16. All 9 with-runs: the skill fired, 0 permission denials, a normal `Review:` line. Without the plugin: P11 missed in 3 of 3 b runs (and b-3 left out `severity`), and 2–3 minor findings on clean in every run. Nothing read `answers.json`. Interpretation and caveats (the with arm is at the ceiling; case a doesn't discriminate): [the plugin README, section 9](../../README.md#stretch-b).
