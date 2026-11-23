@@ -469,6 +469,22 @@ One model per session (switching invalidates the cache). Commit at the end of ev
 - [x] Push (part 1): `capstone/book-101` (to `18fe623`), `capstone/run-1`, `planted/a`, `planted/b`, `planted/clean` (my pick of branches; `capstone/run-2` not pushed, it is book-101's history). Pushed by me from the prompt: the auto-mode classifier refused a 5-branch push from the session
 - [ ] Push `capstone/book-101` (ask first), submit the repo link when the window opens Monday EOD
 
+- Session 5 costs (sources: `/usage`, the eval JSON `costUsd`, or `stage-costs.mjs` on the transcript; the script can under-count calls that never reach a transcript, −2.1% on this walkthrough):
+
+  | Session | Steps | Cost | Model(s) | Source |
+  |---|---|---|---|---|
+  | README v1 (`335ba641`) | first write-up + root pointer | $3.05 | Opus | script |
+  | Stretch B build (`b0fa50a3`) | suite, graders, probe checks | $3.96 | Opus (+ Haiku $0.01) | script |
+  | Probe | case a, 1 run per arm | $0.92 | Sonnet main + Opus agents | eval `costUsd` |
+  | Line check + skill fix (`599e67ac`) | graders ±3 lines, denial fix | $1.01 | Opus | script |
+  | Eval run 1 | 18 runs (6 denied) | $3.48 | Sonnet main + Opus agents | eval `costUsd` |
+  | Eval run 2 | 18 runs, after the fix | $7.10 | Sonnet main + Opus agents | eval `costUsd` |
+  | README rewrite (`07f14693`; `273b400c` was an empty duplicate start, $0.00) | Run it first, `<details>`, Stretch B | $4.02 | Opus | script |
+  | Walkthrough (`d59b21d1`, this guide) | all steps, checks, bookkeeping | $8.62 | Opus (+ Haiku $0.0005) | `/usage` (`session-5-walkthrough-usage.png`: 85 requests, 97% cache, 1 miss, 12m 51s API / 5h 37m wall); script $8.44; export `session-5-walkthrough.txt` |
+  | **Session 5 total** | | **≈ $32.16** | | |
+
+  Running total ≈ $102 (Sessions 1–5 incl. their walkthroughs except Session 1's; Session 0 not counted). Eval runs this session: $11.50 (probe + 2 runs)
+
 ## Build-time checks (Session 0, record the answers here)
 
 Answered 2026-11-20 by the claude-code-guide agent from the docs (code.claude.com/docs/en/…). C3 also checked on disk. Items marked **test** are not in the docs: confirm them in the Session 1–2 smoke tests.
