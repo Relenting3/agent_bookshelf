@@ -20,11 +20,24 @@ export function getBookById(id: number): Book | undefined {
 }
 
 export function searchBooks(query: string): Book[] {
-  const pattern = `%${query}%`;
+  const q = query.trim().toLowerCase();
+  if (q === '') return getAllBooks();
   return all(
-    'SELECT * FROM books WHERE title LIKE ? OR author LIKE ? ORDER BY title',
-    [pattern, pattern]
+    'SELECT * FROM books WHERE instr(ulower(title), ?) > 0 OR instr(ulower(author), ?) > 0 ORDER BY title',
+    [q, q]
   ) as unknown as Book[];
+}
+
+export type SearchQueryResult = { ok: true; query: string } | { ok: false; error: string };
+
+export function parseSearchQuery(raw: unknown): SearchQueryResult {
+  if (raw === undefined) return { ok: true, query: '' };
+  if (typeof raw !== 'string') return { ok: false, error: 'Search query must be a single string' };
+  const query = raw.trim();
+  if ([...query].length > 100) {
+    return { ok: false, error: 'Search query must be 100 characters or fewer' };
+  }
+  return { ok: true, query };
 }
 
 export function createBook(data: Omit<Book, 'id' | 'created_at'>): Book {

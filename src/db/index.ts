@@ -10,6 +10,12 @@ let SQL: SqlJsStatic;
 let db: Database;
 let dbPath: string;
 
+// sql.js typings omit create_function; db.export() drops registered functions, so re-register after it
+function registerFunctions(): void {
+  (db as unknown as { create_function(name: string, fn: (s: unknown) => string | null): void })
+    .create_function('ulower', (s) => (typeof s === 'string' ? s.toLowerCase() : null));
+}
+
 export async function initDb(path?: string): Promise<Database> {
   if (!SQL) {
     SQL = await initSqlJs({
@@ -26,6 +32,7 @@ export async function initDb(path?: string): Promise<Database> {
     db = new SQL.Database();
   }
 
+  registerFunctions();
   db.run('PRAGMA foreign_keys = ON');
 
   const schema = readFileSync(join(__dirname, 'schema.sql'), 'utf-8');
@@ -55,6 +62,7 @@ export function saveDb(): void {
     const data = db.export();
     const buffer = Buffer.from(data);
     writeFileSync(dbPath, buffer);
+    registerFunctions();
   }
 }
 

@@ -10,16 +10,12 @@ router.get('/', (req: Request, res: Response) => {
 });
 
 router.get('/books/search', (req: Request, res: Response) => {
-  const query = req.query.q as string;
-
-  // TODO: Implement search functionality
-  // This is a deliberate homework gap - agents should implement the search backend
-  // For now, return empty results with a message
-  res.send(`
-    <div class="search-message">
-      <p>Search functionality coming soon! This is a homework exercise for agents to implement.</p>
-    </div>
-  `);
+  const result = Book.parseSearchQuery(req.query.q);
+  if (!result.ok) {
+    return res.status(400).render('books/search-results', { books: [], query: '', error: result.error });
+  }
+  const books = Book.searchBooks(result.query);
+  res.render('books/search-results', { books, query: result.query, error: null });
 });
 
 router.get('/books/:id', (req: Request, res: Response) => {
