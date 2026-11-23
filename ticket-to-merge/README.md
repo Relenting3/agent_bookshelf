@@ -6,6 +6,25 @@ A Claude Code plugin with two entry points: `/ship-ticket` ships a ticket test-f
 
 Tested with Claude Code **2.1.330** (`claude --version`) and Node **v22.23.4** (`node -v`) on macOS. In this repo, run `npm install` once (the tests and evals need it). A review alone needs only Node: the hooks use Node built-ins.
 
+Each skill can be started two ways. **(a) Type the slash command** in a Claude session that loaded the plugin. **(b) Use its launcher script** (`ship.sh`, `review.sh`). The script runs the same slash command, but it starts Claude with the settings a full run needs: `--model sonnet` and the skill's git commands already approved. Why that matters: a skill's own model and permissions end at the first background-agent notice, so with (a) the rest of the run can switch to your session model (+$0.45 per review on Opus in the smoke run), and you may get permission prompts for `git`. Add `-p` to a script to run headless (no questions, JSON on stdout), and `--dry-run` to only print the exact `claude` command it would run.
+
+### Ship a ticket
+
+From this repo's root, on a **new feature branch**, with a spec file whose title has a ticket id (like `SPEC.md`):
+
+```bash
+# (a) interactive
+claude --model sonnet --plugin-dir ./ticket-to-merge
+/ticket-to-merge:ship-ticket [spec]                 # spec defaults to SPEC.md
+
+# (b) launcher: same run, Sonnet for the whole run, git add/commit pre-approved
+ticket-to-merge/scripts/ship.sh [spec]
+```
+
+- It commits after each stage on that branch (red tests, green code, each fix round, run summary) and never pushes. It refuses to run on `main` or `master`, and asks first if the tree is dirty.
+- It may stop to ask you questions (the planner's, or a test that disagrees with the spec). With (a) you also approve its `git add` / `git commit` prompts.
+- **Expect** about **10–20 min** and **$2.50** (run 2: 10m 21s, $2.45; run 1: 19m 42s, $2.83). Records go to `tickets/<ID>/`.
+
 ### Review a branch (the graders' case)
 
 Your branch probably doesn't contain the plugin. Clone this branch once, anywhere (`~/ttm` below):
@@ -17,31 +36,18 @@ git clone --branch capstone/book-101 https://github.com/Relenting3/agent_bookshe
 Then go to your own checkout, on the **feature branch** you want reviewed:
 
 ```bash
-claude --model sonnet --plugin-dir ~/ttm/ticket-to-merge    # interactive; then type:
+# (a) interactive
+claude --model sonnet --plugin-dir ~/ttm/ticket-to-merge
 /ticket-to-merge:review-pr [base] [spec]
 
-~/ttm/ticket-to-merge/scripts/review.sh -p [base] [spec]    # headless; Claude's JSON on stdout, the review in .result
+# (b) launcher, headless: Claude's JSON on stdout, the review in .result
+~/ttm/ticket-to-merge/scripts/review.sh -p [base] [spec]
 ```
 
-- It compares your working tree with the merge-base of `HEAD` and the base. The base defaults to `main` (then `master`, `origin/HEAD`). Pass another base as the first argument. The spec defaults to `SPEC.md` if there is one, else the ticket's 5 AC built into the checklist.
-- Why `--model sonnet`: the skill's own `model: sonnet` ends at the first background-agent notice, so without the flag the rest of the review runs on your session model (+$0.45 per review on Opus in the smoke run).
+- **`base`** is the branch your feature branch started from, the one it would merge into. The review covers only what your branch changed since it split off from `base` (its merge-base), including uncommitted edits. Default: `main` (then `master`, `origin/HEAD`). Pass it only if your branch starts from something else, e.g. `/ticket-to-merge:review-pr develop`.
+- **`spec`** is an optional spec file to review against. Default: `SPEC.md` if the branch has one, else the ticket's 5 AC built into the plugin's checklist.
 - It never asks questions and never edits files. It writes one diff file inside `.git/`.
 - **Expect** a ```` ```json ```` fence holding `[{file, line, severity, issue, evidence}]` (or `[]`), then one `Review:` line. About **2 min** and **$0.75** per review (after-lever batch: mean $0.74, range $0.53–0.85, 107–116 s on a buggy branch, 46–55 s on a clean one).
-
-### Ship a ticket
-
-From this repo's root, on a **new feature branch**, with a spec file whose title has a ticket id (like `SPEC.md`):
-
-```bash
-claude --model sonnet --plugin-dir ./ticket-to-merge        # interactive; then type:
-/ticket-to-merge:ship-ticket [spec]                         # spec defaults to SPEC.md
-
-ticket-to-merge/scripts/ship.sh [spec]                      # same, with the model and git rules fixed at start
-```
-
-- It commits after each stage on that branch (red tests, green code, each fix round, run summary) and never pushes. It refuses to run on `main` or `master`, and asks first if the tree is dirty.
-- It may stop to ask you questions (the planner's, or a test that disagrees with the spec). Without `ship.sh` you also approve its `git add` / `git commit` prompts.
-- **Expect** about **10–20 min** and **$2.50** (run 2: 10m 21s, $2.45; run 1: 19m 42s, $2.83). Records go to `tickets/<ID>/`.
 
 ### Check the build
 

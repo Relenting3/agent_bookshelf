@@ -4,10 +4,12 @@
 >
 > ```bash
 > git clone --branch capstone/book-101 https://github.com/Relenting3/agent_bookshelf.git ~/ttm
-> claude --model sonnet --plugin-dir ~/ttm/ticket-to-merge   # in your repo, on the branch to review, then:
-> /ticket-to-merge:review-pr [base] [spec]                    # headless: ~/ttm/ticket-to-merge/scripts/review.sh -p
-> /ticket-to-merge:ship-ticket [spec]                         # new feature branch + spec; or scripts/ship.sh [spec]
+> claude --model sonnet --plugin-dir ~/ttm/ticket-to-merge   # on a feature branch, then:
+> /ticket-to-merge:ship-ticket [spec]                         # ship a ticket from a spec (default SPEC.md)
+> /ticket-to-merge:review-pr [base] [spec]                    # review the branch against base (default main)
 > ```
+>
+> Each command also has a launcher script (`ship.sh`, `review.sh`) that keeps the whole run on Sonnet and pre-approves its git commands; see "Run it" in the write-up.
 >
 > Full write-up (how to run, results, design, guardrails, evals, cost report): [`ticket-to-merge/README.md`](ticket-to-merge/README.md). The original README follows.
 
