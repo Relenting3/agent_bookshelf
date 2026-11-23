@@ -441,8 +441,8 @@ One model per session (switching invalidates the cache). Commit at the end of ev
   | Lever build (`bba4f51c`) | diff by path | $1.38 | Opus | script |
   | After batch | 9 × /review-pr | $6.62 | Sonnet main + Opus agents | `-p` JSON |
   | Run 2 (`720d56e7`) | /ship-ticket BOOK-101 | $2.45 | Sonnet $1.17 · Opus $1.26 · Haiku $0.02 | `/usage` (`session-4-run-2-usage.png`) |
-  | Walkthrough (`0a2d8d06`, this guide) | all steps, checks, bookkeeping | $7.29 | Opus | script (no `/usage` taken); export `session-4-walkthrough.txt` |
-  | **Session 4 total** | | **≈ $34.50** | | |
+  | Walkthrough (`0a2d8d06`, this guide) | all steps, checks, bookkeeping | $7.50 | Opus (+ Haiku $0.0005) | `/usage` (`session-4-walkthrough.png`: 77 requests, 97% cache, 1 miss, 14m 14s API / 6h 15m wall); script $7.29 (−2.8%); export `session-4-walkthrough.txt` |
+  | **Session 4 total** | | **≈ $34.70** | | |
 
   Running total ≈ $70 (Sessions 1–4 incl. their walkthroughs except Session 1's; Session 0 not counted); over the original ~$50, by my call at the end of Session 3 (budget not a constraint). The eval batches were $17.74 of it; the lever saves ≈ $0.50 per standalone review from here on
 
