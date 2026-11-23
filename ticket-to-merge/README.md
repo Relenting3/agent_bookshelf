@@ -430,7 +430,17 @@ Each plant is a patch on run 1's implementation, and each one breaks the plain 5
 
 ## 8. Cost report
 
-- **One ticket, run 2: $2.45** (`/usage`). By stage (script): build $1.49 · review $0.95 · fix loop $0.00. Run 1: $2.83.
+One ticket (BOOK-101), the brief's table. Run 2 is the submitted run, after the lever; run 1 is the same ticket before it.
+
+| Stage | Cost, run 2 | Cache hit, run 2 | Models, run 2 | Cost, run 1 (before lever) |
+|---|---|---|---|---|
+| Build | $1.49 | 89.7% | Sonnet $0.89 · Opus $0.59 · Haiku $0.02 | $1.41 |
+| Review | **$0.95** | 93.3% | Opus $0.67 · Sonnet $0.28 | $1.39 |
+| Fix loop | $0.00 | n/a | none: review found no majors | $0.00 |
+| **Total, one ticket** | **$2.45** (`/usage`) | 91.1% | | $2.83 (`/usage`) |
+
+Stage rows come from `stage-costs.mjs` on the run's transcripts (they add up to $2.44 and $2.80, within 1% of `/usage`).
+
 - **The lever: diff by path** (`8f9bffd`). Git writes the diff to a file once, and each reviewer brief carries only the path, so the main session no longer pastes it 3–4 times.
 - **Result:** review $1.39 → $0.95 (−32%), total $2.83 → $2.45 (−13%). Standalone `/review-pr`: −40% cost, −60% wall time.
 - **Quality re-check:** the same numbers. Suite green, 0 review findings, 8/8 × 3 on the planted bugs, precision 100%.
