@@ -394,7 +394,24 @@ One model per session (switching invalidates the cache). Commit at the end of ev
   - **Pilot 2 (session `9692cd0a`, $1.36): diff pasted** (3 × 20,634 chars, verifier 21,401; typing them took 2m 11s, 21:18:15 → 21:20:26: the lever's target again). Review done at 21:22: **1 minor finding**, kept by the verifier: `tests/models/book-search.test.ts:24`, no test sends a word fragment, so a whole-word matcher passes the suite (T1 "partial" untested). **Labelled real** (my call; T5), in `results/labels.json` for every clean run. **But** while waiting, the main session called **ScheduleWakeup** (1200 s "fallback"); `-p` waited for it, the wakeup re-invoked the skill (refused), and `.result` became that closing message, not the review. Same CLI as run 1 (2.1.330); run 1 just never called it
   - **Decision: `review.sh` and `ship.sh` launch with `--disallowedTools ScheduleWakeup`** (my call: both, so run 2 can't hit a 20-min tail either). Checked: a Haiku `-p` call lists ScheduleWakeup without the flag, not with it; dry runs and `bash -n` pass. A launcher fix, identical before and after, not a lever. Pilot 2 kept as `results/pilot/clean-1-wakeup.json`; clean-1 re-run. README: interactive `/review-pr` can schedule a harmless wakeup too
 - [ ] Apply the lever (one change, one commit); branch `capstone/run-2` from the **same base** as run 1; repeat Session 3's steps with the same answers
+  - **Lever committed `8f9bffd`** (built in a fresh build session, checked here; 7 files, +29 −17). Decisions: diff file = `$(git rev-parse --absolute-git-dir)/ttm-review-${CLAUDE_SESSION_ID}.diff` (my pick over `.ttm/` and a temp dir: never in the diff or the untracked list, per worktree, nothing left in a grader's tree, existing rules cover both commands); normal mode `git -P diff --output=<file>`; the main session never opens the file; briefs carry `Diff: Read <file> in full (--stat: …)`; large mode unchanged. Agents: "the diff file named in your brief (continue with offset if one Read doesn't return it all)". ship-ticket: its "write only" rule and step 6 allow that one file. README wording: "/review-pr writes only its diff file, inside .git/, never the working tree" (each session leaves one small file in `.git/`; later rounds of the same session overwrite it). Checks: validate ✔, both launcher drift checks exit 0 (rules unchanged), `test-hooks.mjs` **197 passed, 0 failed** (+8: the `--output` command and Reads of the file allowed, a reviewer's Write/git of it blocked), the real command in `wt/a` → 513 lines, byte-identical (`cmp`) to stdout, `git status` clean
+  - Base check for run 2: `git diff 4ae8fe7 HEAD -- src tests SPEC.md CLAUDE.md package*.json .claude .gitignore` is empty. Besides `homework/`, only `ticket-to-merge/` differs from run 1's base: evals/, the launchers' ScheduleWakeup deny, and the lever (the bb1fca3 "verbatim" wording is replaced by it)
 - [ ] Re-check quality: tests green, fix rounds, planted bugs 3× again → "same numbers, or what moved"
+  - **Planted, after the lever: done 2026-11-22** (same worktrees, order and command; `results/after/report.md`). 9/9 `success`, 0 denials, **every agent Read the diff file** (36/36 transcripts); briefs 1,109–1,126 chars (verifier 5.2–6.9k: findings only), were 19–21k:
+
+    | | Before (`results/before`) | After (`results/after`) | Moved |
+    |---|---|---|---|
+    | Recall a + b (÷ 8) | 8/8 · 8/8 · 8/8 | 8/8 · 8/8 · 8/8 | same, pass^3 every plant |
+    | Precision | 100% (2 hand labels) | 100% (no labels needed) | same |
+    | Clean false positives | 0 · 0 · 0 | 0 · 0 · 0 | same |
+    | Raw → dropped (a; b) | 8→4, 8→2, 7→1; 7→1, 7→3, 7→3 | 8→4, 9→5, 8→4; 7→3, 7→1, 7→1 | verifier still does the precision work |
+    | Cost per review (a / b / clean) | $1.38 / $1.38 / $0.95 | $0.84 / $0.81 / $0.56 | **−40%** |
+    | Main session (Sonnet) | $0.54–0.81 | $0.19–0.26 | **−68%** |
+    | Agents (Opus) per a/b review | ≈ $0.60 | ≈ $0.58 | same (they Read the same bytes) |
+    | Wall time a/b · clean | 262–290 s · 162–167 s | 107–116 s · 46–55 s | **−60%**; launches spread 80–86 s → 6–7 s |
+    | Batch total | $11.12 (mean $1.24) | $6.62 (mean $0.74) | −$4.50 |
+
+    **Same numbers on quality; cost and time moved.** Caveat for the README: recall was already at the ceiling, and n = 8 plants × 3 runs is small, so "held" means no regression seen, not proof of equality. The two before-batch "real but not planted" findings (test gaps on bent tests) didn't recur; findings differ only in duplicates
 - [ ] Merge the chosen run into `capstone/book-101`
 
 ### Session 5 (Mon): stretch B (only if all green) + README + submit
